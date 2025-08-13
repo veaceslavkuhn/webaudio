@@ -965,6 +965,192 @@ const HelpModal = ({ isOpen, onClose }) => {
 // Spectrum Modal Component
 const SpectrumModal = ({ isOpen, onClose, tracks }) => {
 	const [analysisType, setAnalysisType] = useState("frequency");
+	const [selectedTrack, setSelectedTrack] = useState(null);
+	const [analysisData, setAnalysisData] = useState(null);
+	const canvasRef = useRef(null);
+
+	// Get available tracks as array
+	const tracksArray = tracks ? Array.from(tracks.values()) : [];
+	const availableTracks = tracksArray.filter(track => track.audioBuffer);
+
+	useEffect(() => {
+		if (availableTracks.length > 0 && !selectedTrack) {
+			setSelectedTrack(availableTracks[0].id);
+		}
+	}, [availableTracks, selectedTrack]);
+
+	useEffect(() => {
+		if (selectedTrack && isOpen) {
+			performAnalysis();
+		}
+	}, [selectedTrack, analysisType, isOpen]);
+
+	const performAnalysis = async () => {
+		if (!selectedTrack) return;
+
+		const track = tracksArray.find(t => t.id === selectedTrack);
+		if (!track?.audioBuffer) return;
+
+		try {
+			// Dynamic import to avoid circular dependencies
+			const { SpectrumAnalyzer } = await import('../services/SpectrumAnalyzer');
+			const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+			const analyzer = new SpectrumAnalyzer(audioContext);
+
+			let data;
+			switch (analysisType) {
+				case 'frequency':
+					analyzer.initialize(2048);
+					data = analyzer.analyzeAudioBuffer(track.audioBuffer);
+					break;
+				case 'waveform':
+					data = track.audioBuffer.getChannelData(0);
+					break;
+				case 'spectrogram':
+					data = analyzer.createSpectrogram(track.audioBuffer);
+					break;
+				default:
+					data = null;
+			}
+
+			setAnalysisData(data);
+			analyzer.destroy();
+			audioContext.close();
+		} catch (error) {
+			console.error('Analysis failed:', error);
+			setAnalysisData(null);
+		}
+	};
+
+	useEffect(() => {
+		if (analysisData && canvasRef.current) {
+			drawVisualization();
+		}
+	}, [analysisData, analysisType]);
+
+	const drawVisualization = () => {
+		const canvas = canvasRef.current;
+		if (!canvas || !analysisData) return;
+
+		const ctx = canvas.getContext('2d');
+		const { width, height } = canvas;
+
+		ctx.clearRect(0, 0, width, height);
+		ctx.fillStyle = '#1a1a1a';
+		ctx.fillRect(0, 0, width, height);
+
+		switch (analysisType) {
+			case 'frequency':
+				drawFrequencySpectrum(ctx, analysisData, width, height);
+				break;
+			case 'waveform':
+				drawWaveform(ctx, analysisData, width, height);
+				break;
+			case 'spectrogram':
+				drawSpectrogram(ctx, analysisData, width, height);
+				break;
+		}
+	};
+
+	const drawFrequencySpectrum = (ctx, data, width, height) => {
+		if (!data || data.length === 0) return;
+
+		// Use the first frame for static display
+		const spectrum = data[0]?.frequencies || [];
+		const barWidth = width / spectrum.length;
+
+		ctx.fillStyle = '#00ff88';
+		for (let i = 0; i < spectrum.length; i++) {
+			const barHeight = (spectrum[i] / 255) * height;
+			ctx.fillRect(i * barWidth, height - barHeight, barWidth - 1, barHeight);
+		}
+
+		// Draw frequency labels
+		ctx.fillStyle = '#ffffff';
+		ctx.font = '12px Arial';
+		ctx.fillText('0 Hz', 10, height - 10);
+		ctx.fillText('22kHz', width - 50, height - 10);
+	};
+
+	const drawWaveform = (ctx, data, width, height) => {
+		if (!data) return;
+
+		ctx.strokeStyle = '#00ff88';
+		ctx.lineWidth = 1;
+		ctx.beginPath();
+
+		const step = data.length / width;
+		for (let i = 0; i < width; i++) {
+			const sample = data[Math.floor(i * step)];
+			const y = height / 2 + (sample * height / 2);
+			
+			if (i === 0) {
+				ctx.moveTo(i, y);
+			} else {
+				ctx.lineTo(i, y);
+			}
+		}
+
+		ctx.stroke();
+
+		// Draw center line
+		ctx.strokeStyle = '#444444';
+		ctx.lineWidth = 1;
+		ctx.beginPath();
+		ctx.moveTo(0, height / 2);
+		ctx.lineTo(width, height / 2);
+		ctx.stroke();
+	};
+
+	const drawSpectrogram = (ctx, data, width, height) => {
+		if (!data || data.length === 0) return;
+
+		const timeStep = width / data.length;
+		const freqStep = height / (data[0]?.spectrum?.length || 1);
+
+		for (let t = 0; t < data.length; t++) {
+			const frame = data[t];
+			if (!frame.spectrum) continue;
+
+			for (let f = 0; f < frame.spectrum.length; f++) {
+				const magnitude = frame.spectrum[f];
+				const intensity = Math.max(0, Math.min(255, magnitude + 100)) / 255;
+				
+				const r = Math.floor(intensity * 255);
+				const g = Math.floor(intensity * 128);
+				const b = Math.floor(intensity * 64);
+				
+				ctx.fillStyle = `rgb(${r},${g},${b})`;
+				ctx.fillRect(
+					t * timeStep,
+					height - (f + 1) * freqStep,
+					timeStep,
+					freqStep
+				);
+			}
+		}
+	};
+
+	const exportAnalysis = () => {
+		if (!analysisData) return;
+
+		const dataStr = JSON.stringify({
+			type: analysisType,
+			trackId: selectedTrack,
+			timestamp: new Date().toISOString(),
+			data: analysisData
+		}, null, 2);
+
+		const blob = new Blob([dataStr], { type: 'application/json' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `spectrum-analysis-${analysisType}-${Date.now()}.json`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	};
 
 	return (
 		<Modal
@@ -976,8 +1162,28 @@ const SpectrumModal = ({ isOpen, onClose, tracks }) => {
 			<div className="spectrum-modal-content">
 				<div className="spectrum-controls">
 					<div className="form-group">
-						<label>Analysis Type:</label>
+						<label htmlFor="track-select">Track:</label>
 						<select
+							id="track-select"
+							value={selectedTrack || ''}
+							onChange={(e) => setSelectedTrack(e.target.value)}
+							disabled={availableTracks.length === 0}
+						>
+							{availableTracks.length === 0 ? (
+								<option value="">No tracks available</option>
+							) : (
+								availableTracks.map(track => (
+									<option key={track.id} value={track.id}>
+										{track.name}
+									</option>
+								))
+							)}
+						</select>
+					</div>
+					<div className="form-group">
+						<label htmlFor="analysis-type-select">Analysis Type:</label>
+						<select
+							id="analysis-type-select"
 							value={analysisType}
 							onChange={(e) => setAnalysisType(e.target.value)}
 						>
@@ -989,18 +1195,39 @@ const SpectrumModal = ({ isOpen, onClose, tracks }) => {
 				</div>
 
 				<div className="spectrum-display">
-					<div className="spectrum-placeholder">
-						<p>Spectrum analysis visualization would appear here.</p>
-						<p>Tracks available: {tracks?.size || 0}</p>
-						<p>Analysis type: {analysisType}</p>
-					</div>
+					<canvas
+						ref={canvasRef}
+						width={600}
+						height={300}
+						style={{
+							width: '100%',
+							height: '300px',
+							backgroundColor: '#1a1a1a',
+							border: '1px solid #333'
+						}}
+					/>
+					{!analysisData && selectedTrack && (
+						<div className="spectrum-status">
+							<p>Analyzing audio...</p>
+						</div>
+					)}
+					{!selectedTrack && (
+						<div className="spectrum-status">
+							<p>Select a track to begin analysis</p>
+						</div>
+					)}
 				</div>
 
 				<div className="modal-buttons">
 					<button type="button" onClick={onClose} className="button secondary">
 						Close
 					</button>
-					<button type="button" className="button primary">
+					<button 
+						type="button" 
+						className="button primary"
+						onClick={exportAnalysis}
+						disabled={!analysisData}
+					>
 						Export Analysis
 					</button>
 				</div>

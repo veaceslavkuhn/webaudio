@@ -621,7 +621,7 @@ export class AudioEngineService {
 			const source = this.playingSources.get(trackId);
 			try {
 				source.stop();
-			} catch (error) {
+			} catch {
 				// Source might already be stopped
 			}
 			this.playingSources.delete(trackId);
