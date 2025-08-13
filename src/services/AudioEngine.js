@@ -342,6 +342,60 @@ export class AudioEngineService {
 		return newBuffer;
 	}
 
+	pasteAudio(trackId, sourceBuffer, pasteTime) {
+		const trackData = this.audioBuffers.get(trackId);
+		if (!trackData || !sourceBuffer) return false;
+
+		const buffer = trackData.buffer;
+		const sampleRate = buffer.sampleRate;
+		const pastePosition = Math.floor(pasteTime * sampleRate);
+		const sourceLength = sourceBuffer.length;
+		
+		// Create a new buffer that's large enough to hold both the original and pasted audio
+		const newLength = Math.max(buffer.length, pastePosition + sourceLength);
+		const newBuffer = this.audioContext.createBuffer(
+			buffer.numberOfChannels,
+			newLength,
+			sampleRate,
+		);
+
+		// Copy original audio data
+		for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+			const oldData = buffer.getChannelData(channel);
+			const newData = newBuffer.getChannelData(channel);
+			
+			// Copy original data
+			for (let i = 0; i < buffer.length; i++) {
+				newData[i] = oldData[i];
+			}
+			
+			// Paste new data (mix if overlapping)
+			const sourceChannelData = sourceBuffer.getChannelData(
+				Math.min(channel, sourceBuffer.numberOfChannels - 1)
+			);
+			
+			for (let i = 0; i < sourceLength; i++) {
+				const targetIndex = pastePosition + i;
+				if (targetIndex < newLength) {
+					// Mix the audio if there's existing content
+					if (targetIndex < buffer.length) {
+						newData[targetIndex] = (newData[targetIndex] + sourceChannelData[i]) * 0.5;
+					} else {
+						newData[targetIndex] = sourceChannelData[i];
+					}
+				}
+			}
+		}
+
+		// Update the track with the new buffer
+		this.audioBuffers.set(trackId, {
+			...trackData,
+			buffer: newBuffer,
+		});
+
+		return true;
+	}
+
 	// Generate audio content
 	generateTone(frequency, duration, amplitude = 0.5, waveform = "sine") {
 		const sampleRate = this.audioContext.sampleRate;

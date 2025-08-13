@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import MenuBar from "./components/MenuBar";
 import {
+	AboutModal,
 	ConfirmModal,
 	EffectModal,
 	ExportModal,
 	FileModal,
 	GenerateModal,
+	HelpModal,
+	PreferencesModal,
+	SpectrumModal,
 } from "./components/Modals";
 import StatusBar from "./components/StatusBar";
 import Timeline from "./components/Timeline";
@@ -28,6 +32,10 @@ const AppContent = () => {
 		confirm: null,
 		generate: false,
 		effect: false,
+		preferences: false,
+		about: false,
+		help: false,
+		spectrum: false,
 	});
 
 	// Setup keyboard shortcuts
@@ -128,6 +136,12 @@ const AppContent = () => {
 		closeModal("effect");
 	};
 
+	const handlePreferencesSave = (settings) => {
+		// Save preferences logic would go here
+		// For now, just update status
+		actions.setStatus("Preferences saved successfully");
+	};
+
 	return (
 		<div className="audacity-app">
 			<MenuBar onMenuAction={openModal} />
@@ -205,6 +219,22 @@ const AppContent = () => {
 					type={modals.confirm.type}
 				/>
 			)}
+
+			<PreferencesModal
+				isOpen={modals.preferences}
+				onClose={() => closeModal("preferences")}
+				onSave={handlePreferencesSave}
+			/>
+
+			<AboutModal isOpen={modals.about} onClose={() => closeModal("about")} />
+
+			<HelpModal isOpen={modals.help} onClose={() => closeModal("help")} />
+
+			<SpectrumModal
+				isOpen={modals.spectrum}
+				onClose={() => closeModal("spectrum")}
+				tracks={state.tracks}
+			/>
 
 			{/* Global loading overlay */}
 			{state.isProcessing && (

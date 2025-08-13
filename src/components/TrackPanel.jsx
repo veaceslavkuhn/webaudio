@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAudioActions, useAudioState } from "../context/AudioContext";
 
 const TrackPanel = ({ track }) => {

@@ -671,6 +671,344 @@ const EffectModal = ({ isOpen, onClose, onApply, effectName }) => {
 	);
 };
 
+// Preferences Modal Component
+const PreferencesModal = ({ isOpen, onClose, onSave }) => {
+	const [settings, setSettings] = useState({
+		sampleRate: 44100,
+		bitDepth: 16,
+		bufferSize: 512,
+		enableAutoSave: false,
+		theme: "light",
+	});
+
+	const handleSave = () => {
+		onSave(settings);
+		onClose();
+	};
+
+	const updateSetting = (key, value) => {
+		setSettings((prev) => ({ ...prev, [key]: value }));
+	};
+
+	return (
+		<Modal isOpen={isOpen} onClose={onClose} title="Preferences" size="medium">
+			<div className="preferences-modal-content">
+				<div className="preference-section">
+					<h4>Audio Settings</h4>
+					<div className="form-group">
+						<label>Sample Rate:</label>
+						<select
+							value={settings.sampleRate}
+							onChange={(e) =>
+								updateSetting("sampleRate", parseInt(e.target.value))
+							}
+						>
+							<option value={22050}>22,050 Hz</option>
+							<option value={44100}>44,100 Hz</option>
+							<option value={48000}>48,000 Hz</option>
+							<option value={96000}>96,000 Hz</option>
+						</select>
+					</div>
+					<div className="form-group">
+						<label>Bit Depth:</label>
+						<select
+							value={settings.bitDepth}
+							onChange={(e) =>
+								updateSetting("bitDepth", parseInt(e.target.value))
+							}
+						>
+							<option value={16}>16-bit</option>
+							<option value={24}>24-bit</option>
+							<option value={32}>32-bit</option>
+						</select>
+					</div>
+					<div className="form-group">
+						<label>Buffer Size:</label>
+						<select
+							value={settings.bufferSize}
+							onChange={(e) =>
+								updateSetting("bufferSize", parseInt(e.target.value))
+							}
+						>
+							<option value={256}>256 samples</option>
+							<option value={512}>512 samples</option>
+							<option value={1024}>1024 samples</option>
+							<option value={2048}>2048 samples</option>
+						</select>
+					</div>
+				</div>
+
+				<div className="preference-section">
+					<h4>General Settings</h4>
+					<div className="form-group">
+						<label>
+							<input
+								type="checkbox"
+								checked={settings.enableAutoSave}
+								onChange={(e) =>
+									updateSetting("enableAutoSave", e.target.checked)
+								}
+							/>
+							Enable Auto-Save
+						</label>
+					</div>
+					<div className="form-group">
+						<label>Theme:</label>
+						<select
+							value={settings.theme}
+							onChange={(e) => updateSetting("theme", e.target.value)}
+						>
+							<option value="light">Light</option>
+							<option value="dark">Dark</option>
+						</select>
+					</div>
+				</div>
+
+				<div className="modal-buttons">
+					<button type="button" onClick={onClose} className="button secondary">
+						Cancel
+					</button>
+					<button type="button" onClick={handleSave} className="button primary">
+						Save Settings
+					</button>
+				</div>
+			</div>
+		</Modal>
+	);
+};
+
+// About Modal Component
+const AboutModal = ({ isOpen, onClose }) => {
+	return (
+		<Modal
+			isOpen={isOpen}
+			onClose={onClose}
+			title="About WebAudacity"
+			size="medium"
+		>
+			<div className="about-modal-content">
+				<div className="about-header">
+					<h2>WebAudacity</h2>
+					<p className="version">Version 1.0.0</p>
+				</div>
+
+				<div className="about-description">
+					<p>
+						A modern, browser-based audio editing application that replicates
+						Audacity's core functionality using Web Audio API. No downloads or
+						installations required!
+					</p>
+				</div>
+
+				<div className="about-features">
+					<h4>Features:</h4>
+					<ul>
+						<li>Multi-track audio editing</li>
+						<li>Real-time recording and playback</li>
+						<li>Professional audio effects</li>
+						<li>Import/Export multiple formats</li>
+						<li>Non-destructive editing</li>
+						<li>Spectrum analysis tools</li>
+					</ul>
+				</div>
+
+				<div className="about-credits">
+					<h4>Credits:</h4>
+					<p>Built with Web Audio API, React, and modern web technologies.</p>
+					<p>Inspired by Audacity - the original free audio editor.</p>
+				</div>
+
+				<div className="modal-buttons">
+					<button type="button" onClick={onClose} className="button primary">
+						Close
+					</button>
+				</div>
+			</div>
+		</Modal>
+	);
+};
+
+// Help Modal Component
+const HelpModal = ({ isOpen, onClose }) => {
+	const [activeSection, setActiveSection] = useState("getting-started");
+
+	const helpSections = {
+		"getting-started": {
+			title: "Getting Started",
+			content: (
+				<div>
+					<h4>Loading Audio Files</h4>
+					<p>
+						Click <strong>File &gt; Import &gt; Audio...</strong> or drag and
+						drop files onto the interface.
+					</p>
+
+					<h4>Recording Audio</h4>
+					<p>
+						Click the red <strong>Record</strong> button and allow microphone
+						access when prompted.
+					</p>
+
+					<h4>Basic Editing</h4>
+					<p>
+						Use the Selection Tool to select portions of audio, then use Cut,
+						Copy, Paste, or Delete from the Edit menu.
+					</p>
+				</div>
+			),
+		},
+		"keyboard-shortcuts": {
+			title: "Keyboard Shortcuts",
+			content: (
+				<div>
+					<table>
+						<tbody>
+							<tr>
+								<td>Ctrl/Cmd + N</td>
+								<td>New Project</td>
+							</tr>
+							<tr>
+								<td>Ctrl/Cmd + O</td>
+								<td>Open File</td>
+							</tr>
+							<tr>
+								<td>Ctrl/Cmd + S</td>
+								<td>Save Project</td>
+							</tr>
+							<tr>
+								<td>Ctrl/Cmd + Z</td>
+								<td>Undo</td>
+							</tr>
+							<tr>
+								<td>Ctrl/Cmd + Y</td>
+								<td>Redo</td>
+							</tr>
+							<tr>
+								<td>Ctrl/Cmd + X</td>
+								<td>Cut</td>
+							</tr>
+							<tr>
+								<td>Ctrl/Cmd + C</td>
+								<td>Copy</td>
+							</tr>
+							<tr>
+								<td>Ctrl/Cmd + V</td>
+								<td>Paste</td>
+							</tr>
+							<tr>
+								<td>Space</td>
+								<td>Play/Pause</td>
+							</tr>
+							<tr>
+								<td>Delete</td>
+								<td>Delete Selection</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			),
+		},
+		effects: {
+			title: "Audio Effects",
+			content: (
+				<div>
+					<h4>Available Effects:</h4>
+					<ul>
+						<li>
+							<strong>Amplify:</strong> Boost or reduce volume levels
+						</li>
+						<li>
+							<strong>Normalize:</strong> Automatic level optimization
+						</li>
+						<li>
+							<strong>Fade In/Out:</strong> Smooth transitions
+						</li>
+						<li>
+							<strong>Echo:</strong> Delay and repeat effects
+						</li>
+						<li>
+							<strong>Reverb:</strong> Spatial ambience effects
+						</li>
+						<li>
+							<strong>Speed/Pitch Change:</strong> Tempo and pitch manipulation
+						</li>
+					</ul>
+				</div>
+			),
+		},
+	};
+
+	return (
+		<Modal isOpen={isOpen} onClose={onClose} title="Help" size="large">
+			<div className="help-modal-content">
+				<div className="help-sidebar">
+					{Object.entries(helpSections).map(([key, section]) => (
+						<button
+							key={key}
+							className={`help-nav-item ${activeSection === key ? "active" : ""}`}
+							onClick={() => setActiveSection(key)}
+						>
+							{section.title}
+						</button>
+					))}
+				</div>
+
+				<div className="help-content">
+					<h3>{helpSections[activeSection].title}</h3>
+					{helpSections[activeSection].content}
+				</div>
+			</div>
+		</Modal>
+	);
+};
+
+// Spectrum Modal Component
+const SpectrumModal = ({ isOpen, onClose, tracks }) => {
+	const [analysisType, setAnalysisType] = useState("frequency");
+
+	return (
+		<Modal
+			isOpen={isOpen}
+			onClose={onClose}
+			title="Spectrum Analyzer"
+			size="large"
+		>
+			<div className="spectrum-modal-content">
+				<div className="spectrum-controls">
+					<div className="form-group">
+						<label>Analysis Type:</label>
+						<select
+							value={analysisType}
+							onChange={(e) => setAnalysisType(e.target.value)}
+						>
+							<option value="frequency">Frequency Spectrum</option>
+							<option value="waveform">Waveform</option>
+							<option value="spectrogram">Spectrogram</option>
+						</select>
+					</div>
+				</div>
+
+				<div className="spectrum-display">
+					<div className="spectrum-placeholder">
+						<p>Spectrum analysis visualization would appear here.</p>
+						<p>Tracks available: {tracks?.size || 0}</p>
+						<p>Analysis type: {analysisType}</p>
+					</div>
+				</div>
+
+				<div className="modal-buttons">
+					<button type="button" onClick={onClose} className="button secondary">
+						Close
+					</button>
+					<button type="button" className="button primary">
+						Export Analysis
+					</button>
+				</div>
+			</div>
+		</Modal>
+	);
+};
+
 export {
 	Modal,
 	ConfirmModal,
@@ -678,4 +1016,8 @@ export {
 	ExportModal,
 	GenerateModal,
 	EffectModal,
+	PreferencesModal,
+	AboutModal,
+	HelpModal,
+	SpectrumModal,
 };

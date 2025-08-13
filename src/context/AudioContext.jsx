@@ -539,6 +539,43 @@ export const AudioProvider = ({ children }) => {
 			dispatch({ type: ActionTypes.SET_STATUS, payload: "Deleted selection" });
 		}, [state.selection, state.tracks]),
 
+		paste: useCallback(() => {
+			if (!state.clipboard || !audioEngineRef.current) {
+				dispatch({
+					type: ActionTypes.SET_STATUS,
+					payload: "Nothing to paste",
+				});
+				return;
+			}
+
+			try {
+				// If we have a selection, paste at the selection start
+				// Otherwise, paste at the current playhead position
+				const pastePosition =
+					state.selection.start || state.playheadPosition || 0;
+
+				for (const [trackId, buffer] of state.clipboard.tracks) {
+					// Check if the track still exists
+					if (state.tracks.has(trackId)) {
+						audioEngineRef.current.pasteAudio(trackId, buffer, pastePosition);
+					}
+				}
+
+				actions.updateTotalDuration();
+				dispatch({ type: ActionTypes.SET_STATUS, payload: "Pasted audio" });
+			} catch (error) {
+				dispatch({
+					type: ActionTypes.SET_ERROR,
+					payload: "Failed to paste audio",
+				});
+			}
+		}, [
+			state.clipboard,
+			state.selection,
+			state.playheadPosition,
+			state.tracks,
+		]),
+
 		// Effects
 		applyEffect: useCallback(
 			(effectName, parameters) => {

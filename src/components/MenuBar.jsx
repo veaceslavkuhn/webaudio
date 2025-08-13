@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { useAudioActions } from "../context/AudioContext";
+import { useAudioActions, useAudioState } from "../context/AudioContext";
 
 const MenuBar = ({ onMenuAction }) => {
 	const [activeMenu, setActiveMenu] = useState(null);
 	const actions = useAudioActions();
+	const state = useAudioState();
 
 	const handleFileImport = () => {
 		onMenuAction?.("file");
@@ -28,6 +29,124 @@ const MenuBar = ({ onMenuAction }) => {
 		onMenuAction?.("generate", { type });
 	};
 
+	// Save project functionality
+	const handleSaveProject = () => {
+		try {
+			const projectData = {
+				tracks: Array.from(state.tracks.entries()).map(([id, track]) => ({
+					id,
+					name: track.name,
+					// Note: In a real implementation, you'd serialize the audio data
+					// For now, we'll just save metadata
+					metadata: {
+						duration: track.duration,
+						sampleRate: track.sampleRate,
+						channels: track.channels,
+					},
+				})),
+				settings: state.projectSettings,
+				timestamp: new Date().toISOString(),
+			};
+
+			const blob = new Blob([JSON.stringify(projectData, null, 2)], {
+				type: "application/json",
+			});
+
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `webaudacity-project-${Date.now()}.json`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+
+			actions.setStatus("Project saved successfully");
+		} catch (error) {
+			actions.setError("Failed to save project");
+		}
+	};
+
+	// Undo/Redo functionality (simplified version)
+	const handleUndo = () => {
+		// For now, just show a message. In a full implementation,
+		// you'd need to implement a command pattern with history
+		actions.setStatus("Undo functionality not yet fully implemented");
+	};
+
+	const handleRedo = () => {
+		// For now, just show a message. In a full implementation,
+		// you'd need to implement a command pattern with history
+		actions.setStatus("Redo functionality not yet fully implemented");
+	};
+
+	// Paste functionality
+	const handlePaste = () => {
+		actions.paste();
+	};
+
+	// Analysis tools
+	const handlePlotSpectrum = () => {
+		if (state.tracks.size === 0) {
+			actions.setStatus("No audio tracks to analyze");
+			return;
+		}
+
+		// Open a modal for spectrum analysis
+		onMenuAction?.("spectrum");
+		actions.setStatus("Opening spectrum analyzer...");
+	};
+
+	const handleAnalyzeAudio = () => {
+		if (state.tracks.size === 0) {
+			actions.setStatus("No audio tracks to analyze");
+			return;
+		}
+
+		// Show audio analysis information
+		const totalTracks = state.tracks.size;
+		const totalDuration = state.totalDuration;
+		const message = `Audio Analysis: ${totalTracks} tracks, ${totalDuration.toFixed(2)}s total duration`;
+		actions.setStatus(message);
+	};
+
+	// Preferences
+	const handlePreferences = () => {
+		onMenuAction?.("preferences");
+		actions.setStatus("Opening preferences...");
+	};
+
+	// Reset configuration
+	const handleResetConfig = () => {
+		onMenuAction?.("confirm", {
+			title: "Reset Configuration",
+			message:
+				"Are you sure you want to reset all settings to default? This action cannot be undone.",
+			onConfirm: () => {
+				// Reset to default settings
+				actions.setZoomLevel(1.0);
+				actions.setScrollPosition(0);
+				actions.setTool("selection");
+				actions.setPlaybackVolume(80);
+				actions.setRecordingVolume(50);
+				actions.clearSelection();
+				actions.setStatus("Configuration reset to defaults");
+			},
+		});
+	};
+
+	// About dialog
+	const handleAbout = () => {
+		onMenuAction?.("about");
+		actions.setStatus("Opening about dialog...");
+	};
+
+	// Help
+	const handleHelp = () => {
+		onMenuAction?.("help");
+		actions.setStatus("Opening help...");
+	};
+
 	const menuItems = [
 		{
 			label: "File",
@@ -36,7 +155,7 @@ const MenuBar = ({ onMenuAction }) => {
 				{ label: "Open...", action: handleFileImport },
 				{
 					label: "Save Project",
-					action: () => console.log("Save project - Not implemented"),
+					action: handleSaveProject,
 				},
 				{ label: "Export Audio...", action: handleExport },
 				{ type: "separator" },
@@ -46,14 +165,14 @@ const MenuBar = ({ onMenuAction }) => {
 		{
 			label: "Edit",
 			items: [
-				{ label: "Undo", action: () => console.log("Undo - Not implemented") },
-				{ label: "Redo", action: () => console.log("Redo - Not implemented") },
+				{ label: "Undo", action: handleUndo },
+				{ label: "Redo", action: handleRedo },
 				{ type: "separator" },
 				{ label: "Cut", action: actions.cut },
 				{ label: "Copy", action: actions.copy },
 				{
 					label: "Paste",
-					action: () => console.log("Paste - Not implemented"),
+					action: handlePaste,
 				},
 				{ label: "Delete", action: actions.delete },
 				{ type: "separator" },
@@ -90,11 +209,11 @@ const MenuBar = ({ onMenuAction }) => {
 			items: [
 				{
 					label: "Plot Spectrum...",
-					action: () => console.log("Plot spectrum - Not implemented"),
+					action: handlePlotSpectrum,
 				},
 				{
 					label: "Analyze Audio...",
-					action: () => console.log("Analyze audio - Not implemented"),
+					action: handleAnalyzeAudio,
 				},
 			],
 		},
@@ -103,11 +222,11 @@ const MenuBar = ({ onMenuAction }) => {
 			items: [
 				{
 					label: "Preferences...",
-					action: () => console.log("Preferences - Not implemented"),
+					action: handlePreferences,
 				},
 				{
 					label: "Reset Configuration",
-					action: () => console.log("Reset config - Not implemented"),
+					action: handleResetConfig,
 				},
 			],
 		},
@@ -116,9 +235,9 @@ const MenuBar = ({ onMenuAction }) => {
 			items: [
 				{
 					label: "About WebAudacity",
-					action: () => console.log("About - Not implemented"),
+					action: handleAbout,
 				},
-				{ label: "Help", action: () => console.log("Help - Not implemented") },
+				{ label: "Help", action: handleHelp },
 			],
 		},
 	];
