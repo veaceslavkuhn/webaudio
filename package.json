@@ -1,0 +1,41 @@
+{
+  "name": "webaudacity-react",
+  "version": "1.0.0",
+  "description": "Web-based audio editor built with React - Audacity clone",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext js,jsx,ts,tsx",
+    "lint:fix": "eslint . --ext js,jsx,ts,tsx --fix"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "lucide-react": "^0.263.1",
+    "clsx": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.22",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.4",
+    "eslint": "^8.48.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.3",
+    "vite": "^4.4.9"
+  },
+  "keywords": [
+    "audio",
+    "editor",
+    "react",
+    "web-audio",
+    "audacity",
+    "music",
+    "recording"
+  ],
+  "author": "WebAudacity Team",
+  "license": "MIT"
+}
