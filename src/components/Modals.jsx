@@ -344,7 +344,7 @@ const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
 
 	const handleGenerate = () => {
 		const params = { frequency, duration, amplitude };
-		
+
 		if (type === "tone") {
 			params.waveform = waveform;
 		} else if (type === "noise") {
@@ -357,10 +357,14 @@ const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
 
 	const getTitle = () => {
 		switch (type) {
-			case "tone": return "Generate Tone";
-			case "noise": return "Generate Noise";
-			case "silence": return "Generate Silence";
-			default: return "Generate Audio";
+			case "tone":
+				return "Generate Tone";
+			case "noise":
+				return "Generate Noise";
+			case "silence":
+				return "Generate Silence";
+			default:
+				return "Generate Audio";
 		}
 	};
 
@@ -408,7 +412,10 @@ const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
 						</div>
 						<div className="form-group">
 							<label>Waveform:</label>
-							<select value={waveform} onChange={(e) => setWaveform(e.target.value)}>
+							<select
+								value={waveform}
+								onChange={(e) => setWaveform(e.target.value)}
+							>
 								<option value="sine">Sine</option>
 								<option value="square">Square</option>
 								<option value="sawtooth">Sawtooth</option>
@@ -421,7 +428,10 @@ const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
 				{type === "noise" && (
 					<div className="form-group">
 						<label>Noise Type:</label>
-						<select value={noiseType} onChange={(e) => setNoiseType(e.target.value)}>
+						<select
+							value={noiseType}
+							onChange={(e) => setNoiseType(e.target.value)}
+						>
 							<option value="white">White Noise</option>
 							<option value="pink">Pink Noise</option>
 						</select>
@@ -432,7 +442,11 @@ const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
 					<button type="button" className="button secondary" onClick={onClose}>
 						Cancel
 					</button>
-					<button type="button" className="button primary" onClick={handleGenerate}>
+					<button
+						type="button"
+						className="button primary"
+						onClick={handleGenerate}
+					>
 						Generate
 					</button>
 				</div>
@@ -451,55 +465,151 @@ const EffectModal = ({ isOpen, onClose, onApply, effectName }) => {
 				return {
 					title: "Amplify",
 					params: [
-						{ name: "gain", label: "Gain", type: "number", min: 0, max: 10, step: 0.1, default: 1.5 }
-					]
+						{
+							name: "gain",
+							label: "Gain",
+							type: "number",
+							min: 0,
+							max: 10,
+							step: 0.1,
+							default: 1.5,
+						},
+					],
 				};
 			case "normalize":
 				return {
 					title: "Normalize",
 					params: [
-						{ name: "targetPeak", label: "Target Peak", type: "number", min: 0, max: 1, step: 0.01, default: 0.95 }
-					]
+						{
+							name: "targetPeak",
+							label: "Target Peak",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.95,
+						},
+					],
 				};
 			case "echo":
 				return {
 					title: "Echo",
 					params: [
-						{ name: "delay", label: "Delay (s)", type: "number", min: 0.1, max: 2, step: 0.1, default: 0.5 },
-						{ name: "decay", label: "Decay", type: "number", min: 0, max: 1, step: 0.01, default: 0.3 },
-						{ name: "repeat", label: "Repeat", type: "number", min: 1, max: 10, step: 1, default: 3 }
-					]
+						{
+							name: "delay",
+							label: "Delay (s)",
+							type: "number",
+							min: 0.1,
+							max: 2,
+							step: 0.1,
+							default: 0.5,
+						},
+						{
+							name: "decay",
+							label: "Decay",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.3,
+						},
+						{
+							name: "repeat",
+							label: "Repeat",
+							type: "number",
+							min: 1,
+							max: 10,
+							step: 1,
+							default: 3,
+						},
+					],
 				};
 			case "reverb":
 				return {
 					title: "Reverb",
 					params: [
-						{ name: "roomSize", label: "Room Size", type: "number", min: 0, max: 1, step: 0.01, default: 0.5 },
-						{ name: "damping", label: "Damping", type: "number", min: 0, max: 1, step: 0.01, default: 0.5 },
-						{ name: "wetGain", label: "Wet Gain", type: "number", min: 0, max: 1, step: 0.01, default: 0.3 }
-					]
+						{
+							name: "roomSize",
+							label: "Room Size",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.5,
+						},
+						{
+							name: "damping",
+							label: "Damping",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.5,
+						},
+						{
+							name: "wetGain",
+							label: "Wet Gain",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.3,
+						},
+					],
 				};
 			case "changeSpeed":
 				return {
 					title: "Change Speed",
 					params: [
-						{ name: "speedRatio", label: "Speed Ratio", type: "number", min: 0.1, max: 4, step: 0.1, default: 1.2 }
-					]
+						{
+							name: "speedRatio",
+							label: "Speed Ratio",
+							type: "number",
+							min: 0.1,
+							max: 4,
+							step: 0.1,
+							default: 1.2,
+						},
+					],
 				};
 			case "changePitch":
 				return {
 					title: "Change Pitch",
 					params: [
-						{ name: "pitchRatio", label: "Pitch Ratio", type: "number", min: 0.1, max: 4, step: 0.1, default: 1.2 }
-					]
+						{
+							name: "pitchRatio",
+							label: "Pitch Ratio",
+							type: "number",
+							min: 0.1,
+							max: 4,
+							step: 0.1,
+							default: 1.2,
+						},
+					],
 				};
 			case "noiseReduction":
 				return {
 					title: "Noise Reduction",
 					params: [
-						{ name: "noiseFloor", label: "Noise Floor", type: "number", min: 0, max: 1, step: 0.01, default: 0.1 },
-						{ name: "reduction", label: "Reduction", type: "number", min: 0, max: 1, step: 0.01, default: 0.8 }
-					]
+						{
+							name: "noiseFloor",
+							label: "Noise Floor",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.1,
+						},
+						{
+							name: "reduction",
+							label: "Reduction",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.8,
+						},
+					],
 				};
 			default:
 				return { title: effectName, params: [] };
@@ -510,7 +620,7 @@ const EffectModal = ({ isOpen, onClose, onApply, effectName }) => {
 
 	React.useEffect(() => {
 		const initialParams = {};
-		config.params.forEach(param => {
+		config.params.forEach((param) => {
 			initialParams[param.name] = param.default;
 		});
 		setParameters(initialParams);
@@ -524,16 +634,18 @@ const EffectModal = ({ isOpen, onClose, onApply, effectName }) => {
 	return (
 		<Modal isOpen={isOpen} onClose={onClose} title={config.title}>
 			<div className="effect-modal">
-				{config.params.map(param => (
+				{config.params.map((param) => (
 					<div key={param.name} className="form-group">
 						<label>{param.label}:</label>
 						<input
 							type={param.type}
 							value={parameters[param.name] || param.default}
 							onChange={(e) => {
-								const value = param.type === "number" ? 
-									parseFloat(e.target.value) : e.target.value;
-								setParameters(prev => ({ ...prev, [param.name]: value }));
+								const value =
+									param.type === "number"
+										? parseFloat(e.target.value)
+										: e.target.value;
+								setParameters((prev) => ({ ...prev, [param.name]: value }));
 							}}
 							min={param.min}
 							max={param.max}
@@ -546,7 +658,11 @@ const EffectModal = ({ isOpen, onClose, onApply, effectName }) => {
 					<button type="button" className="button secondary" onClick={onClose}>
 						Cancel
 					</button>
-					<button type="button" className="button primary" onClick={handleApply}>
+					<button
+						type="button"
+						className="button primary"
+						onClick={handleApply}
+					>
 						Apply Effect
 					</button>
 				</div>
@@ -555,4 +671,11 @@ const EffectModal = ({ isOpen, onClose, onApply, effectName }) => {
 	);
 };
 
-export { Modal, ConfirmModal, FileModal, ExportModal, GenerateModal, EffectModal };
+export {
+	Modal,
+	ConfirmModal,
+	FileModal,
+	ExportModal,
+	GenerateModal,
+	EffectModal,
+};

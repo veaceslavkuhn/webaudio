@@ -1,11 +1,21 @@
 import React, { useState } from "react";
 import MenuBar from "./components/MenuBar";
-import { ConfirmModal, ExportModal, FileModal, GenerateModal, EffectModal } from "./components/Modals";
+import {
+	ConfirmModal,
+	EffectModal,
+	ExportModal,
+	FileModal,
+	GenerateModal,
+} from "./components/Modals";
 import StatusBar from "./components/StatusBar";
 import Timeline from "./components/Timeline";
 import Toolbar from "./components/Toolbar";
 import TrackPanel from "./components/TrackPanel";
-import { AudioProvider, useAudioState, useAudioActions } from "./context/AudioContext";
+import {
+	AudioProvider,
+	useAudioActions,
+	useAudioState,
+} from "./context/AudioContext";
 import { useFileDrop, useKeyboardShortcuts } from "./hooks/useAudioHooks";
 import "./App.css";
 
@@ -30,19 +40,19 @@ const AppContent = () => {
 
 	const openModal = (modalType, data = null) => {
 		if (modalType === "generate") {
-			setModals((prev) => ({ 
-				...prev, 
-				generate: data || true 
+			setModals((prev) => ({
+				...prev,
+				generate: data || true,
 			}));
 		} else if (modalType === "effect") {
-			setModals((prev) => ({ 
-				...prev, 
-				effect: data || true 
+			setModals((prev) => ({
+				...prev,
+				effect: data || true,
 			}));
 		} else {
-			setModals((prev) => ({ 
-				...prev, 
-				[modalType]: data === null ? true : data 
+			setModals((prev) => ({
+				...prev,
+				[modalType]: data === null ? true : data,
 			}));
 		}
 	};
@@ -94,7 +104,12 @@ const AppContent = () => {
 	const handleGenerate = (type, params) => {
 		switch (type) {
 			case "tone":
-				actions.generateTone(params.frequency, params.duration, params.amplitude, params.waveform);
+				actions.generateTone(
+					params.frequency,
+					params.duration,
+					params.amplitude,
+					params.waveform,
+				);
 				break;
 			case "noise":
 				actions.generateNoise(params.duration, params.amplitude, params.type);

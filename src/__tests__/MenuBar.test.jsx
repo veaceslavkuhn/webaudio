@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import React from "react";
 import MenuBar from "../components/MenuBar";
 import { AudioProvider } from "../context/AudioContext";
 
@@ -12,8 +13,8 @@ jest.mock("../context/AudioContext", () => ({
 		cut: jest.fn(),
 		copy: jest.fn(),
 		delete: jest.fn(),
-		selectAll: jest.fn()
-	})
+		selectAll: jest.fn(),
+	}),
 }));
 
 const WrappedMenuBar = ({ onMenuAction }) => (
@@ -102,7 +103,7 @@ describe("MenuBar", () => {
 
 		const fileMenu = screen.getByText("File");
 		fireEvent.mouseEnter(fileMenu.parentElement);
-		
+
 		const openItem = screen.getByText("Open...");
 		fireEvent.click(openItem);
 
@@ -114,7 +115,7 @@ describe("MenuBar", () => {
 
 		const fileMenu = screen.getByText("File");
 		fireEvent.mouseEnter(fileMenu.parentElement);
-		
+
 		const exportItem = screen.getByText("Export Audio...");
 		fireEvent.click(exportItem);
 
@@ -126,7 +127,7 @@ describe("MenuBar", () => {
 
 		const generateMenu = screen.getByText("Generate");
 		fireEvent.mouseEnter(generateMenu.parentElement);
-		
+
 		const toneItem = screen.getByText("Tone...");
 		fireEvent.click(toneItem);
 
@@ -138,11 +139,13 @@ describe("MenuBar", () => {
 
 		const generateMenu = screen.getByText("Generate");
 		fireEvent.mouseEnter(generateMenu.parentElement);
-		
+
 		const noiseItem = screen.getByText("Noise...");
 		fireEvent.click(noiseItem);
 
-		expect(mockOnMenuAction).toHaveBeenCalledWith("generate", { type: "noise" });
+		expect(mockOnMenuAction).toHaveBeenCalledWith("generate", {
+			type: "noise",
+		});
 	});
 
 	test("calls onMenuAction when generate silence is clicked", () => {
@@ -150,11 +153,13 @@ describe("MenuBar", () => {
 
 		const generateMenu = screen.getByText("Generate");
 		fireEvent.mouseEnter(generateMenu.parentElement);
-		
+
 		const silenceItem = screen.getByText("Silence...");
 		fireEvent.click(silenceItem);
 
-		expect(mockOnMenuAction).toHaveBeenCalledWith("generate", { type: "silence" });
+		expect(mockOnMenuAction).toHaveBeenCalledWith("generate", {
+			type: "silence",
+		});
 	});
 
 	test("calls onMenuAction when effect is clicked", () => {
@@ -162,11 +167,13 @@ describe("MenuBar", () => {
 
 		const effectMenu = screen.getByText("Effect");
 		fireEvent.mouseEnter(effectMenu.parentElement);
-		
+
 		const amplifyItem = screen.getByText("Amplify...");
 		fireEvent.click(amplifyItem);
 
-		expect(mockOnMenuAction).toHaveBeenCalledWith("effect", { effectName: "amplify" });
+		expect(mockOnMenuAction).toHaveBeenCalledWith("effect", {
+			effectName: "amplify",
+		});
 	});
 
 	test("menu closes after item selection", () => {
@@ -174,10 +181,10 @@ describe("MenuBar", () => {
 
 		const fileMenu = screen.getByText("File");
 		fireEvent.mouseEnter(fileMenu.parentElement);
-		
+
 		// Menu should be open
 		expect(screen.getByText("New")).toBeInTheDocument();
-		
+
 		const newItem = screen.getByText("New");
 		fireEvent.click(newItem);
 
@@ -192,7 +199,7 @@ describe("MenuBar", () => {
 
 		const fileMenu = screen.getByText("File");
 		fireEvent.mouseEnter(fileMenu.parentElement);
-		
+
 		const newItem = screen.getByText("New");
 		fireEvent.click(newItem);
 

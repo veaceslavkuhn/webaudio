@@ -34,7 +34,10 @@ const MenuBar = ({ onMenuAction }) => {
 			items: [
 				{ label: "New", action: handleNewProject },
 				{ label: "Open...", action: handleFileImport },
-				{ label: "Save Project", action: () => console.log("Save project - Not implemented") },
+				{
+					label: "Save Project",
+					action: () => console.log("Save project - Not implemented"),
+				},
 				{ label: "Export Audio...", action: handleExport },
 				{ type: "separator" },
 				{ label: "Import > Audio...", action: handleFileImport },
@@ -48,7 +51,10 @@ const MenuBar = ({ onMenuAction }) => {
 				{ type: "separator" },
 				{ label: "Cut", action: actions.cut },
 				{ label: "Copy", action: actions.copy },
-				{ label: "Paste", action: () => console.log("Paste - Not implemented") },
+				{
+					label: "Paste",
+					action: () => console.log("Paste - Not implemented"),
+				},
 				{ label: "Delete", action: actions.delete },
 				{ type: "separator" },
 				{ label: "Select All", action: actions.selectAll },
@@ -95,7 +101,10 @@ const MenuBar = ({ onMenuAction }) => {
 		{
 			label: "Tools",
 			items: [
-				{ label: "Preferences...", action: () => console.log("Preferences - Not implemented") },
+				{
+					label: "Preferences...",
+					action: () => console.log("Preferences - Not implemented"),
+				},
 				{
 					label: "Reset Configuration",
 					action: () => console.log("Reset config - Not implemented"),
@@ -105,7 +114,10 @@ const MenuBar = ({ onMenuAction }) => {
 		{
 			label: "Help",
 			items: [
-				{ label: "About WebAudacity", action: () => console.log("About - Not implemented") },
+				{
+					label: "About WebAudacity",
+					action: () => console.log("About - Not implemented"),
+				},
 				{ label: "Help", action: () => console.log("Help - Not implemented") },
 			],
 		},
