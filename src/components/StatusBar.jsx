@@ -1,4 +1,5 @@
 import { Volume2, ZoomIn, ZoomOut } from "lucide-react";
+import React from "react";
 import { useAudioActions, useAudioState } from "../context/AudioContext";
 
 const StatusBar = () => {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import MenuBar from "./components/MenuBar";
 import { ConfirmModal, ExportModal, FileModal } from "./components/Modals";
 import StatusBar from "./components/StatusBar";
@@ -70,7 +70,7 @@ const AppContent = () => {
 						</div>
 					) : (
 						<div className="track-list">
-							{state.tracks.map((track) => (
+							{Array.from(state.tracks.values()).map((track) => (
 								<TrackPanel key={track.id} track={track} />
 							))}
 						</div>

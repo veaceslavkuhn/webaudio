@@ -2,7 +2,7 @@ import {
 	Circle,
 	Maximize2,
 	MousePointer,
-	Move3D,
+	Move,
 	Pause,
 	Play,
 	SkipBack,
@@ -165,7 +165,7 @@ const Toolbar = () => {
 					onClick={() => handleToolClick("timeshift")}
 					title="Time Shift Tool"
 				>
-					<Move3D size={16} />
+					<Move size={16} />
 				</button>
 			</div>
 

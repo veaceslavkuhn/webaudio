@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 const MenuBar = ({ onFileImport, onExport, onEffect, onGenerate }) => {
 	const [activeMenu, setActiveMenu] = useState(null);
