@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { AudioEngineService } from "../services/AudioEngine";
 import { EffectsProcessorService } from "../services/EffectsProcessor";
+import { UndoRedoManager } from "../services/UndoRedoManager";
 
 // Initial state
 const initialState = {
@@ -33,6 +34,12 @@ const initialState = {
 	clipboard: null,
 	loading: false,
 	error: null,
+	undoRedo: {
+		canUndo: false,
+		canRedo: false,
+		undoDescription: null,
+		redoDescription: null,
+	},
 };
 
 // Action types
@@ -59,6 +66,7 @@ const ActionTypes = {
 	SET_LOADING: "SET_LOADING",
 	SET_ERROR: "SET_ERROR",
 	CLEAR_ERROR: "CLEAR_ERROR",
+	UPDATE_UNDO_REDO_STATE: "UPDATE_UNDO_REDO_STATE",
 };
 
 // Reducer
@@ -216,6 +224,12 @@ function audioReducer(state, action) {
 				error: null,
 			};
 
+		case ActionTypes.UPDATE_UNDO_REDO_STATE:
+			return {
+				...state,
+				undoRedo: action.payload,
+			};
+
 		default:
 			return state;
 	}
@@ -247,6 +261,23 @@ export const AudioProvider = ({ children }) => {
 	const [state, dispatch] = useReducer(audioReducer, initialState);
 	const audioEngineRef = useRef(null);
 	const effectsProcessorRef = useRef(null);
+	const undoRedoManagerRef = useRef(null);
+
+	// Initialize undo/redo manager
+	if (!undoRedoManagerRef.current) {
+		undoRedoManagerRef.current = new UndoRedoManager();
+	}
+
+	// Helper function to update undo/redo state
+	const updateUndoRedoState = useCallback(() => {
+		if (undoRedoManagerRef.current) {
+			const undoRedoState = undoRedoManagerRef.current.getState();
+			dispatch({
+				type: ActionTypes.UPDATE_UNDO_REDO_STATE,
+				payload: undoRedoState,
+			});
+		}
+	}, []);
 
 	// Initialize audio services
 	useEffect(() => {
@@ -717,6 +748,44 @@ export const AudioProvider = ({ children }) => {
 			}
 			return [];
 		}, []),
+
+		// Undo/Redo actions
+		undo: useCallback(() => {
+			if (undoRedoManagerRef.current) {
+				const success = undoRedoManagerRef.current.undo();
+				updateUndoRedoState();
+				return success;
+			}
+			return false;
+		}, [updateUndoRedoState]),
+
+		redo: useCallback(() => {
+			if (undoRedoManagerRef.current) {
+				const success = undoRedoManagerRef.current.redo();
+				updateUndoRedoState();
+				return success;
+			}
+			return false;
+		}, [updateUndoRedoState]),
+
+		executeCommand: useCallback(
+			(command) => {
+				if (undoRedoManagerRef.current) {
+					const result = undoRedoManagerRef.current.executeCommand(command);
+					updateUndoRedoState();
+					return result;
+				}
+				return null;
+			},
+			[updateUndoRedoState],
+		),
+
+		clearHistory: useCallback(() => {
+			if (undoRedoManagerRef.current) {
+				undoRedoManagerRef.current.clear();
+				updateUndoRedoState();
+			}
+		}, [updateUndoRedoState]),
 	};
 
 	return (

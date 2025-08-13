@@ -67,17 +67,27 @@ const MenuBar = ({ onMenuAction }) => {
 		}
 	};
 
-	// Undo/Redo functionality (simplified version)
+	// Undo/Redo functionality
 	const handleUndo = () => {
-		// For now, just show a message. In a full implementation,
-		// you'd need to implement a command pattern with history
-		actions.setStatus("Undo functionality not yet fully implemented");
+		const success = actions.undo();
+		if (success) {
+			actions.setStatus(
+				`Undid: ${state.undoRedo.undoDescription || "operation"}`,
+			);
+		} else {
+			actions.setStatus("Nothing to undo");
+		}
 	};
 
 	const handleRedo = () => {
-		// For now, just show a message. In a full implementation,
-		// you'd need to implement a command pattern with history
-		actions.setStatus("Redo functionality not yet fully implemented");
+		const success = actions.redo();
+		if (success) {
+			actions.setStatus(
+				`Redid: ${state.undoRedo.redoDescription || "operation"}`,
+			);
+		} else {
+			actions.setStatus("Nothing to redo");
+		}
 	};
 
 	// Paste functionality
@@ -165,8 +175,16 @@ const MenuBar = ({ onMenuAction }) => {
 		{
 			label: "Edit",
 			items: [
-				{ label: "Undo", action: handleUndo },
-				{ label: "Redo", action: handleRedo },
+				{
+					label: `Undo${state.undoRedo.undoDescription ? ` ${state.undoRedo.undoDescription}` : ""}`,
+					action: handleUndo,
+					disabled: !state.undoRedo.canUndo,
+				},
+				{
+					label: `Redo${state.undoRedo.redoDescription ? ` ${state.undoRedo.redoDescription}` : ""}`,
+					action: handleRedo,
+					disabled: !state.undoRedo.canRedo,
+				},
 				{ type: "separator" },
 				{ label: "Cut", action: actions.cut },
 				{ label: "Copy", action: actions.copy },
@@ -247,7 +265,7 @@ const MenuBar = ({ onMenuAction }) => {
 	};
 
 	const handleItemClick = (item) => {
-		if (item.action) {
+		if (item.action && !item.disabled) {
 			item.action();
 		}
 		setActiveMenu(null);
@@ -273,7 +291,9 @@ const MenuBar = ({ onMenuAction }) => {
 										<button
 											key={itemIndex}
 											onClick={() => handleItemClick(item)}
+											disabled={item.disabled}
 											type="button"
+											className={item.disabled ? "disabled" : ""}
 										>
 											{item.label}
 										</button>
