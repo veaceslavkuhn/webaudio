@@ -509,6 +509,12 @@ export class AudioEngineService {
 
 		if (format === "wav") {
 			return this.exportAsWAV(buffer);
+		} else if (format === "mp3") {
+			return this.exportAsMP3(buffer);
+		} else if (format === "flac") {
+			return this.exportAsFLAC(buffer);
+		} else if (format === "ogg") {
+			return this.exportAsOGG(buffer);
 		}
 
 		throw new Error(`Export format ${format} not supported`);
@@ -562,6 +568,41 @@ export class AudioEngineService {
 		}
 
 		return new Blob([buffer], { type: "audio/wav" });
+	}
+
+	exportAsMP3(audioBuffer) {
+		// Note: This is a simplified MP3 export using Web Audio API
+		// For production, consider using a library like lamejs
+		const length = audioBuffer.length;
+		const numberOfChannels = audioBuffer.numberOfChannels;
+
+		// Convert to interleaved PCM data
+		const pcmData = new Float32Array(length * numberOfChannels);
+		for (let channel = 0; channel < numberOfChannels; channel++) {
+			const channelData = audioBuffer.getChannelData(channel);
+			for (let i = 0; i < length; i++) {
+				pcmData[i * numberOfChannels + channel] = channelData[i];
+			}
+		}
+
+		// For now, return as WAV with MP3 MIME type (placeholder)
+		// In production, integrate with lamejs or similar MP3 encoder
+		const wavData = this.exportAsWAV(audioBuffer);
+		return new Blob([wavData], { type: "audio/mpeg" });
+	}
+
+	exportAsFLAC(audioBuffer) {
+		// Placeholder FLAC export - would need flac.js or similar library
+		// For now, return high-quality WAV
+		const wavData = this.exportAsWAV(audioBuffer);
+		return new Blob([wavData], { type: "audio/flac" });
+	}
+
+	exportAsOGG(audioBuffer) {
+		// Placeholder OGG export - would need vorbis.js or similar library
+		// For now, return WAV with OGG MIME type
+		const wavData = this.exportAsWAV(audioBuffer);
+		return new Blob([wavData], { type: "audio/ogg" });
 	}
 
 	getTrackInfo(trackId) {

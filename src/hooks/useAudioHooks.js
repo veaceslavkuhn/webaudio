@@ -189,8 +189,10 @@ export const useKeyboardShortcuts = () => {
 						e.preventDefault();
 						if (e.shiftKey) {
 							// Redo
+							actions.redo();
 						} else {
 							// Undo
+							actions.undo();
 						}
 						break;
 					case "x":
