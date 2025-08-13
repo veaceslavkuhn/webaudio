@@ -1,57 +1,82 @@
 import React, { useState } from "react";
+import { useAudioActions } from "../context/AudioContext";
 
-const MenuBar = ({ onFileImport, onExport, onEffect, onGenerate }) => {
+const MenuBar = ({ onMenuAction }) => {
 	const [activeMenu, setActiveMenu] = useState(null);
+	const actions = useAudioActions();
+
+	const handleFileImport = () => {
+		onMenuAction?.("file");
+	};
+
+	const handleExport = () => {
+		onMenuAction?.("export");
+	};
+
+	const handleNewProject = () => {
+		// Clear all tracks and reset state
+		actions.clearError();
+		actions.clearSelection();
+		actions.setStatus("New project created");
+	};
+
+	const handleEffect = (effectName) => {
+		onMenuAction?.("effect", { effectName });
+	};
+
+	const handleGenerate = (type) => {
+		onMenuAction?.("generate", { type });
+	};
 
 	const menuItems = [
 		{
 			label: "File",
 			items: [
-				{ label: "New", action: () => console.log("New project") },
-				{ label: "Open...", action: onFileImport },
-				{ label: "Save Project", action: () => console.log("Save project") },
-				{ label: "Export Audio...", action: onExport },
+				{ label: "New", action: handleNewProject },
+				{ label: "Open...", action: handleFileImport },
+				{ label: "Save Project", action: () => console.log("Save project - Not implemented") },
+				{ label: "Export Audio...", action: handleExport },
 				{ type: "separator" },
-				{ label: "Import > Audio...", action: onFileImport },
+				{ label: "Import > Audio...", action: handleFileImport },
 			],
 		},
 		{
 			label: "Edit",
 			items: [
-				{ label: "Undo", action: () => console.log("Undo") },
-				{ label: "Redo", action: () => console.log("Redo") },
+				{ label: "Undo", action: () => console.log("Undo - Not implemented") },
+				{ label: "Redo", action: () => console.log("Redo - Not implemented") },
 				{ type: "separator" },
-				{ label: "Cut", action: () => console.log("Cut") },
-				{ label: "Copy", action: () => console.log("Copy") },
-				{ label: "Paste", action: () => console.log("Paste") },
-				{ label: "Delete", action: () => console.log("Delete") },
+				{ label: "Cut", action: actions.cut },
+				{ label: "Copy", action: actions.copy },
+				{ label: "Paste", action: () => console.log("Paste - Not implemented") },
+				{ label: "Delete", action: actions.delete },
 				{ type: "separator" },
-				{ label: "Select All", action: () => console.log("Select All") },
+				{ label: "Select All", action: actions.selectAll },
 			],
 		},
 		{
 			label: "Generate",
 			items: [
-				{ label: "Tone...", action: () => onGenerate("tone") },
-				{ label: "Noise...", action: () => onGenerate("noise") },
-				{ label: "Silence...", action: () => onGenerate("silence") },
+				{ label: "Tone...", action: () => handleGenerate("tone") },
+				{ label: "Noise...", action: () => handleGenerate("noise") },
+				{ label: "Silence...", action: () => handleGenerate("silence") },
 			],
 		},
 		{
 			label: "Effect",
 			items: [
-				{ label: "Amplify...", action: () => onEffect("amplify") },
-				{ label: "Normalize...", action: () => onEffect("normalize") },
-				{ label: "Fade In", action: () => onEffect("fadeIn") },
-				{ label: "Fade Out", action: () => onEffect("fadeOut") },
-				{ label: "Echo...", action: () => onEffect("echo") },
-				{ label: "Reverb...", action: () => onEffect("reverb") },
+				{ label: "Amplify...", action: () => handleEffect("amplify") },
+				{ label: "Normalize...", action: () => handleEffect("normalize") },
+				{ label: "Fade In", action: () => handleEffect("fadeIn") },
+				{ label: "Fade Out", action: () => handleEffect("fadeOut") },
+				{ label: "Echo...", action: () => handleEffect("echo") },
+				{ label: "Reverb...", action: () => handleEffect("reverb") },
 				{
 					label: "Noise Reduction...",
-					action: () => onEffect("noiseReduction"),
+					action: () => handleEffect("noiseReduction"),
 				},
-				{ label: "Change Speed...", action: () => onEffect("changeSpeed") },
-				{ label: "Change Pitch...", action: () => onEffect("changePitch") },
+				{ label: "Change Speed...", action: () => handleEffect("changeSpeed") },
+				{ label: "Change Pitch...", action: () => handleEffect("changePitch") },
 			],
 		},
 		{
@@ -59,29 +84,29 @@ const MenuBar = ({ onFileImport, onExport, onEffect, onGenerate }) => {
 			items: [
 				{
 					label: "Plot Spectrum...",
-					action: () => console.log("Plot spectrum"),
+					action: () => console.log("Plot spectrum - Not implemented"),
 				},
 				{
 					label: "Analyze Audio...",
-					action: () => console.log("Analyze audio"),
+					action: () => console.log("Analyze audio - Not implemented"),
 				},
 			],
 		},
 		{
 			label: "Tools",
 			items: [
-				{ label: "Preferences...", action: () => console.log("Preferences") },
+				{ label: "Preferences...", action: () => console.log("Preferences - Not implemented") },
 				{
 					label: "Reset Configuration",
-					action: () => console.log("Reset config"),
+					action: () => console.log("Reset config - Not implemented"),
 				},
 			],
 		},
 		{
 			label: "Help",
 			items: [
-				{ label: "About WebAudacity", action: () => console.log("About") },
-				{ label: "Help", action: () => console.log("Help") },
+				{ label: "About WebAudacity", action: () => console.log("About - Not implemented") },
+				{ label: "Help", action: () => console.log("Help - Not implemented") },
 			],
 		},
 	];

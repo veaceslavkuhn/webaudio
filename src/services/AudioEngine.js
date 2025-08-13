@@ -268,7 +268,9 @@ export class AudioEngineService {
 	// Audio buffer manipulation methods
 	cutAudio(trackId, startTime, endTime) {
 		const trackData = this.audioBuffers.get(trackId);
-		if (!trackData) return null;
+		if (!trackData) return false;
+
+		if (startTime >= endTime || startTime < 0 || endTime < 0) return false;
 
 		const buffer = trackData.buffer;
 		const sampleRate = buffer.sampleRate;
@@ -307,7 +309,7 @@ export class AudioEngineService {
 			duration: newBuffer.duration,
 		});
 
-		return newBuffer;
+		return true;
 	}
 
 	copyAudio(trackId, startTime, endTime) {

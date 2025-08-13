@@ -334,4 +334,225 @@ const ExportModal = ({ isOpen, onClose, onExport, tracks = [] }) => {
 	);
 };
 
-export { Modal, ConfirmModal, FileModal, ExportModal };
+// Generate Audio Modal
+const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
+	const [frequency, setFrequency] = useState(440);
+	const [duration, setDuration] = useState(1.0);
+	const [amplitude, setAmplitude] = useState(0.5);
+	const [waveform, setWaveform] = useState("sine");
+	const [noiseType, setNoiseType] = useState("white");
+
+	const handleGenerate = () => {
+		const params = { frequency, duration, amplitude };
+		
+		if (type === "tone") {
+			params.waveform = waveform;
+		} else if (type === "noise") {
+			params.type = noiseType;
+		}
+
+		onGenerate(type, params);
+		onClose();
+	};
+
+	const getTitle = () => {
+		switch (type) {
+			case "tone": return "Generate Tone";
+			case "noise": return "Generate Noise";
+			case "silence": return "Generate Silence";
+			default: return "Generate Audio";
+		}
+	};
+
+	return (
+		<Modal isOpen={isOpen} onClose={onClose} title={getTitle()}>
+			<div className="generate-modal">
+				<div className="form-group">
+					<label>Duration (seconds):</label>
+					<input
+						type="number"
+						value={duration}
+						onChange={(e) => setDuration(parseFloat(e.target.value))}
+						min="0.1"
+						max="60"
+						step="0.1"
+					/>
+				</div>
+
+				{type !== "silence" && (
+					<div className="form-group">
+						<label>Amplitude:</label>
+						<input
+							type="range"
+							value={amplitude}
+							onChange={(e) => setAmplitude(parseFloat(e.target.value))}
+							min="0"
+							max="1"
+							step="0.01"
+						/>
+						<span>{amplitude.toFixed(2)}</span>
+					</div>
+				)}
+
+				{type === "tone" && (
+					<>
+						<div className="form-group">
+							<label>Frequency (Hz):</label>
+							<input
+								type="number"
+								value={frequency}
+								onChange={(e) => setFrequency(parseInt(e.target.value))}
+								min="20"
+								max="20000"
+							/>
+						</div>
+						<div className="form-group">
+							<label>Waveform:</label>
+							<select value={waveform} onChange={(e) => setWaveform(e.target.value)}>
+								<option value="sine">Sine</option>
+								<option value="square">Square</option>
+								<option value="sawtooth">Sawtooth</option>
+								<option value="triangle">Triangle</option>
+							</select>
+						</div>
+					</>
+				)}
+
+				{type === "noise" && (
+					<div className="form-group">
+						<label>Noise Type:</label>
+						<select value={noiseType} onChange={(e) => setNoiseType(e.target.value)}>
+							<option value="white">White Noise</option>
+							<option value="pink">Pink Noise</option>
+						</select>
+					</div>
+				)}
+
+				<div className="modal-actions">
+					<button type="button" className="button secondary" onClick={onClose}>
+						Cancel
+					</button>
+					<button type="button" className="button primary" onClick={handleGenerate}>
+						Generate
+					</button>
+				</div>
+			</div>
+		</Modal>
+	);
+};
+
+// Effect Modal
+const EffectModal = ({ isOpen, onClose, onApply, effectName }) => {
+	const [parameters, setParameters] = useState({});
+
+	const getEffectConfig = () => {
+		switch (effectName) {
+			case "amplify":
+				return {
+					title: "Amplify",
+					params: [
+						{ name: "gain", label: "Gain", type: "number", min: 0, max: 10, step: 0.1, default: 1.5 }
+					]
+				};
+			case "normalize":
+				return {
+					title: "Normalize",
+					params: [
+						{ name: "targetPeak", label: "Target Peak", type: "number", min: 0, max: 1, step: 0.01, default: 0.95 }
+					]
+				};
+			case "echo":
+				return {
+					title: "Echo",
+					params: [
+						{ name: "delay", label: "Delay (s)", type: "number", min: 0.1, max: 2, step: 0.1, default: 0.5 },
+						{ name: "decay", label: "Decay", type: "number", min: 0, max: 1, step: 0.01, default: 0.3 },
+						{ name: "repeat", label: "Repeat", type: "number", min: 1, max: 10, step: 1, default: 3 }
+					]
+				};
+			case "reverb":
+				return {
+					title: "Reverb",
+					params: [
+						{ name: "roomSize", label: "Room Size", type: "number", min: 0, max: 1, step: 0.01, default: 0.5 },
+						{ name: "damping", label: "Damping", type: "number", min: 0, max: 1, step: 0.01, default: 0.5 },
+						{ name: "wetGain", label: "Wet Gain", type: "number", min: 0, max: 1, step: 0.01, default: 0.3 }
+					]
+				};
+			case "changeSpeed":
+				return {
+					title: "Change Speed",
+					params: [
+						{ name: "speedRatio", label: "Speed Ratio", type: "number", min: 0.1, max: 4, step: 0.1, default: 1.2 }
+					]
+				};
+			case "changePitch":
+				return {
+					title: "Change Pitch",
+					params: [
+						{ name: "pitchRatio", label: "Pitch Ratio", type: "number", min: 0.1, max: 4, step: 0.1, default: 1.2 }
+					]
+				};
+			case "noiseReduction":
+				return {
+					title: "Noise Reduction",
+					params: [
+						{ name: "noiseFloor", label: "Noise Floor", type: "number", min: 0, max: 1, step: 0.01, default: 0.1 },
+						{ name: "reduction", label: "Reduction", type: "number", min: 0, max: 1, step: 0.01, default: 0.8 }
+					]
+				};
+			default:
+				return { title: effectName, params: [] };
+		}
+	};
+
+	const config = getEffectConfig();
+
+	React.useEffect(() => {
+		const initialParams = {};
+		config.params.forEach(param => {
+			initialParams[param.name] = param.default;
+		});
+		setParameters(initialParams);
+	}, [effectName]);
+
+	const handleApply = () => {
+		onApply(effectName, parameters);
+		onClose();
+	};
+
+	return (
+		<Modal isOpen={isOpen} onClose={onClose} title={config.title}>
+			<div className="effect-modal">
+				{config.params.map(param => (
+					<div key={param.name} className="form-group">
+						<label>{param.label}:</label>
+						<input
+							type={param.type}
+							value={parameters[param.name] || param.default}
+							onChange={(e) => {
+								const value = param.type === "number" ? 
+									parseFloat(e.target.value) : e.target.value;
+								setParameters(prev => ({ ...prev, [param.name]: value }));
+							}}
+							min={param.min}
+							max={param.max}
+							step={param.step}
+						/>
+					</div>
+				))}
+
+				<div className="modal-actions">
+					<button type="button" className="button secondary" onClick={onClose}>
+						Cancel
+					</button>
+					<button type="button" className="button primary" onClick={handleApply}>
+						Apply Effect
+					</button>
+				</div>
+			</div>
+		</Modal>
+	);
+};
+
+export { Modal, ConfirmModal, FileModal, ExportModal, GenerateModal, EffectModal };
