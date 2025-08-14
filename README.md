@@ -276,8 +276,6 @@ src/
 ├── services/            # Core business logic
 │   ├── AudioEngine.js   # Web Audio API management
 │   ├── EffectsProcessor.js # Digital signal processing
-│   ├── AudioMonitor.js  # Audio analysis and monitoring
-│   ├── MIDIService.js   # MIDI input handling
 │   ├── SpectrumAnalyzer.js # Frequency analysis
 │   └── UndoRedoManager.js # Command pattern implementation
 ├── hooks/
@@ -441,16 +439,12 @@ webAudio/
 │   │   ├── Timeline.jsx    # Audio timeline and waveform display
 │   │   ├── TrackPanel.jsx  # Individual track controls
 │   │   ├── StatusBar.jsx   # Application status display
-│   │   ├── Modals.jsx      # All modal dialogs
-│   │   └── AdvancedTimeline.jsx # Enhanced timeline features
+│   │   └── Modals.jsx      # All modal dialogs
 │   ├── context/
 │   │   └── AudioContext.jsx # Global state management
 │   ├── services/
 │   │   ├── AudioEngine.js     # Core audio functionality
-│   │   ├── AudioCommands.js   # Command pattern for undo/redo
 │   │   ├── EffectsProcessor.js # Digital signal processing
-│   │   ├── AudioMonitor.js    # Real-time audio analysis
-│   │   ├── MIDIService.js     # MIDI input handling
 │   │   ├── SpectrumAnalyzer.js # FFT analysis
 │   │   └── UndoRedoManager.js  # Undo/redo system
 │   ├── hooks/

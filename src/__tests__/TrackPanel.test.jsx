@@ -21,10 +21,6 @@ jest.mock("../services/EffectsProcessor", () => ({
 
 // Mock the useAudioHooks
 jest.mock("../hooks/useAudioHooks", () => ({
-	useWaveformRenderer: () => ({
-		canvasRef: { current: null },
-		renderer: null,
-	}),
 	useTrackInteraction: () => ({}),
 }));
 

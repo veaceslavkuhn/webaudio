@@ -5,10 +5,6 @@ import { AudioProvider } from "../context/AudioContext";
 
 // Mock the useAudioHooks
 jest.mock("../hooks/useAudioHooks", () => ({
-	useWaveformRenderer: () => ({
-		canvasRef: { current: null },
-		renderer: null,
-	}),
 	useTimelineInteraction: () => ({}),
 }));
 

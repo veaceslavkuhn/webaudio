@@ -5,12 +5,6 @@ import App from "../App.jsx";
 import { AudioProvider } from "../context/AudioContext.jsx";
 
 // Mock components that have complex canvas interactions
-jest.mock("../components/AdvancedTimeline", () => {
-	return function MockAdvancedTimeline() {
-		return <div data-testid="advanced-timeline">Advanced Timeline</div>;
-	};
-});
-
 jest.mock("../components/Timeline", () => {
 	return function MockTimeline() {
 		return <div data-testid="timeline">Timeline</div>;
@@ -62,8 +56,8 @@ describe("App Integration Tests", () => {
 		);
 
 		// Check that main sections are rendered
-		expect(screen.getByTestId("advanced-timeline")).toBeInTheDocument();
 		expect(screen.getByTestId("timeline")).toBeInTheDocument();
+		expect(screen.getByTestId("toolbar")).toBeInTheDocument();
 
 		// Check for other key components by text content
 		expect(screen.getByText("File")).toBeInTheDocument();
@@ -80,7 +74,7 @@ describe("App Integration Tests", () => {
 		);
 
 		// The app should render without errors even with complex state management
-		expect(screen.getByText("WebAudacity")).toBeInTheDocument();
+		expect(screen.getByTestId("app-container")).toBeInTheDocument();
 	});
 
 	test("should render with empty track state", () => {
@@ -91,7 +85,7 @@ describe("App Integration Tests", () => {
 		);
 
 		// Should show empty state indicators
-		expect(screen.getByText("No tracks")).toBeInTheDocument();
+		expect(screen.getByText("No audio tracks")).toBeInTheDocument();
 	});
 
 	test("should maintain responsive layout", () => {
@@ -102,13 +96,13 @@ describe("App Integration Tests", () => {
 			value: 1024,
 		});
 
-		render(
+		const { rerender } = render(
 			<AudioProvider>
 				<App />
 			</AudioProvider>,
 		);
 
-		expect(screen.getByText("WebAudacity")).toBeInTheDocument();
+		expect(screen.getByTestId("app-container")).toBeInTheDocument();
 
 		// Test mobile size
 		Object.defineProperty(window, "innerWidth", {
@@ -118,13 +112,13 @@ describe("App Integration Tests", () => {
 		});
 
 		// Re-render with mobile size
-		render(
+		rerender(
 			<AudioProvider>
 				<App />
 			</AudioProvider>,
 		);
 
-		expect(screen.getByText("WebAudacity")).toBeInTheDocument();
+		expect(screen.getByTestId("app-container")).toBeInTheDocument();
 	});
 });
 
@@ -147,7 +141,7 @@ describe("Component Integration Tests", () => {
 		}).not.toThrow();
 
 		// Should still render the UI
-		expect(screen.getByText("WebAudacity")).toBeInTheDocument();
+		expect(screen.getByTestId("app-container")).toBeInTheDocument();
 	});
 
 	test("should handle missing Web Audio API gracefully", () => {

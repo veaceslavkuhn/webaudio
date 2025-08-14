@@ -24,6 +24,73 @@ const TrackPanel = ({ track }) => {
 		ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 	}, []);
 
+	// Waveform drawing function
+	const drawWaveform = useCallback(() => {
+		const canvas = canvasRef.current;
+		if (!canvas || !track?.audioBuffer) return;
+
+		const ctx = canvas.getContext("2d");
+		const rect = canvas.getBoundingClientRect();
+		const width = rect.width;
+		const height = rect.height;
+
+		// Clear canvas
+		ctx.clearRect(0, 0, width, height);
+
+		const audioBuffer = track.audioBuffer;
+		const pixelsPerSecond = 100 * state.zoomLevel;
+		const startTime = state.scrollPosition / pixelsPerSecond;
+		const endTime = startTime + width / pixelsPerSecond;
+
+		// Calculate the sample range to display
+		const sampleRate = audioBuffer.sampleRate;
+		const startSample = Math.floor(startTime * sampleRate);
+		const endSample = Math.min(Math.floor(endTime * sampleRate), audioBuffer.length);
+		const totalSamples = endSample - startSample;
+
+		if (totalSamples <= 0) return;
+
+		// Get channel data
+		const channelData = audioBuffer.getChannelData(0);
+		
+		// Set drawing styles
+		ctx.fillStyle = "#4a90e2";
+		ctx.strokeStyle = "#2171b5";
+		ctx.lineWidth = 1;
+
+		// Calculate samples per pixel
+		const samplesPerPixel = totalSamples / width;
+
+		// Draw waveform
+		ctx.beginPath();
+		
+		for (let x = 0; x < width; x++) {
+			const sampleIndex = startSample + Math.floor(x * samplesPerPixel);
+			
+			if (sampleIndex >= audioBuffer.length) break;
+			
+			// Get RMS value for this pixel column
+			let sum = 0;
+			let count = 0;
+			const endPixelSample = Math.min(startSample + Math.floor((x + 1) * samplesPerPixel), audioBuffer.length);
+			
+			for (let i = sampleIndex; i < endPixelSample; i++) {
+				sum += channelData[i] * channelData[i];
+				count++;
+			}
+			
+			const rms = count > 0 ? Math.sqrt(sum / count) : 0;
+			const amplitude = Math.min(rms * 3, 1); // Scale and clamp
+			const barHeight = amplitude * height * 0.8; // Use 80% of height
+			
+			// Draw vertical bar centered
+			const y = (height - barHeight) / 2;
+			ctx.fillRect(x, y, 1, barHeight);
+		}
+		
+		ctx.fill();
+	}, [track, state.zoomLevel, state.scrollPosition]);
+
 	const handleMouseDown = useCallback(
 		(e) => {
 			const rect = canvasRef.current.getBoundingClientRect();
@@ -34,13 +101,10 @@ const TrackPanel = ({ track }) => {
 			setIsDragging(true);
 			setDragStart(time);
 
-			// Select this track
-			actions.selectTrack(track.id);
-
-			// Start selection
-			actions.setSelection({ start: time, end: time });
+			// Start selection - Fixed: use separate parameters instead of object
+			actions.setSelection(time, time);
 		},
-		[state.zoomLevel, state.scrollPosition, actions, track.id],
+		[state.zoomLevel, state.scrollPosition, actions],
 	);
 
 	const handleMouseMove = useCallback(
@@ -52,10 +116,10 @@ const TrackPanel = ({ track }) => {
 			const pixelsPerSecond = 100 * state.zoomLevel;
 			const time = (x + state.scrollPosition) / pixelsPerSecond;
 
-			// Update selection
+			// Update selection - Fixed: use separate parameters instead of object
 			const start = Math.min(dragStart, time);
 			const end = Math.max(dragStart, time);
-			actions.setSelection({ start, end });
+			actions.setSelection(start, end);
 		},
 		[isDragging, dragStart, state.zoomLevel, state.scrollPosition, actions],
 	);
@@ -102,6 +166,11 @@ const TrackPanel = ({ track }) => {
 		window.addEventListener("resize", handleResize);
 		return () => window.removeEventListener("resize", handleResize);
 	}, [resizeCanvas]);
+
+	// Draw waveform when track, zoom, or scroll changes
+	useEffect(() => {
+		drawWaveform();
+	}, [drawWaveform]);
 
 	return (
 		<div
