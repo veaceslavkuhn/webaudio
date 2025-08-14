@@ -10,6 +10,10 @@
     "preview": "vite preview",
     "test": "jest --config jest.config.cjs",
     "test:watch": "jest --config jest.config.cjs --watch",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
     "lint": "eslint . --ext js,jsx,ts,tsx",
     "lint:fix": "eslint . --ext js,jsx,ts,tsx --fix"
   },
@@ -22,6 +26,7 @@
   "devDependencies": {
     "@babel/preset-env": "^7.28.0",
     "@babel/preset-react": "^7.27.1",
+    "@playwright/test": "^1.54.2",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
