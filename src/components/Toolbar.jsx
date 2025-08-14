@@ -68,14 +68,15 @@ const Toolbar = () => {
 	};
 
 	return (
-		<div className="toolbar">
+		<div className="toolbar" data-testid="toolbar">
 			{/* Transport Controls */}
-			<div className="toolbar-section">
+			<div className="toolbar-section" data-testid="transport-controls">
 				<button
 					className={`tool-btn record ${state.isRecording ? "active" : ""}`}
 					onClick={handleRecordClick}
 					title="Record"
 					disabled={!state.isInitialized}
+					data-testid="record-button"
 				>
 					<Circle
 						size={16}
@@ -88,6 +89,7 @@ const Toolbar = () => {
 					onClick={actions.stop}
 					title="Stop"
 					disabled={!state.isInitialized}
+					data-testid="stop-button"
 				>
 					<Square size={16} />
 				</button>
@@ -98,6 +100,7 @@ const Toolbar = () => {
 						onClick={actions.pause}
 						title="Pause"
 						disabled={!state.isInitialized}
+						data-testid="pause-button"
 					>
 						<Pause size={16} />
 					</button>
@@ -107,6 +110,7 @@ const Toolbar = () => {
 						onClick={handlePlayClick}
 						title="Play"
 						disabled={!state.isInitialized}
+						data-testid="play-button"
 					>
 						<Play size={16} />
 					</button>
@@ -114,12 +118,13 @@ const Toolbar = () => {
 			</div>
 
 			{/* Skip Controls */}
-			<div className="toolbar-section">
+			<div className="toolbar-section" data-testid="skip-controls">
 				<button
 					className="tool-btn"
 					onClick={() => actions.seekToTime(0)}
 					title="Skip to Start"
 					disabled={!state.isInitialized}
+					data-testid="skip-to-start-button"
 				>
 					<SkipBack size={16} />
 				</button>
@@ -129,17 +134,19 @@ const Toolbar = () => {
 					onClick={() => actions.seekToTime(state.totalDuration)}
 					title="Skip to End"
 					disabled={!state.isInitialized}
+					data-testid="skip-to-end-button"
 				>
 					<SkipForward size={16} />
 				</button>
 			</div>
 
 			{/* Tool Selection */}
-			<div className="toolbar-section">
+			<div className="toolbar-section" data-testid="tool-selection">
 				<button
 					className={`tool-btn ${state.currentTool === "selection" ? "active" : ""}`}
 					onClick={() => handleToolClick("selection")}
 					title="Selection Tool"
+					data-testid="selection-tool-button"
 				>
 					<MousePointer size={16} />
 				</button>
@@ -148,6 +155,7 @@ const Toolbar = () => {
 					className={`tool-btn ${state.currentTool === "envelope" ? "active" : ""}`}
 					onClick={() => handleToolClick("envelope")}
 					title="Envelope Tool"
+					data-testid="envelope-tool-button"
 				>
 					<TrendingUp size={16} />
 				</button>
@@ -156,6 +164,7 @@ const Toolbar = () => {
 					className={`tool-btn ${state.currentTool === "zoom" ? "active" : ""}`}
 					onClick={() => handleToolClick("zoom")}
 					title="Zoom Tool"
+					data-testid="zoom-tool-button"
 				>
 					<ZoomIn size={16} />
 				</button>
@@ -164,18 +173,29 @@ const Toolbar = () => {
 					className={`tool-btn ${state.currentTool === "timeshift" ? "active" : ""}`}
 					onClick={() => handleToolClick("timeshift")}
 					title="Time Shift Tool"
+					data-testid="timeshift-tool-button"
 				>
 					<Move size={16} />
 				</button>
 			</div>
 
 			{/* Zoom Controls */}
-			<div className="toolbar-section">
-				<button className="tool-btn" onClick={handleZoomIn} title="Zoom In">
+			<div className="toolbar-section" data-testid="zoom-controls">
+				<button
+					className="tool-btn"
+					onClick={handleZoomIn}
+					title="Zoom In"
+					data-testid="zoom-in-button"
+				>
 					<ZoomIn size={16} />
 				</button>
 
-				<button className="tool-btn" onClick={handleZoomOut} title="Zoom Out">
+				<button
+					className="tool-btn"
+					onClick={handleZoomOut}
+					title="Zoom Out"
+					data-testid="zoom-out-button"
+				>
 					<ZoomOut size={16} />
 				</button>
 
@@ -183,13 +203,17 @@ const Toolbar = () => {
 					className="tool-btn"
 					onClick={handleZoomFit}
 					title="Fit to Width"
+					data-testid="zoom-fit-button"
 				>
 					<Maximize2 size={16} />
 				</button>
 			</div>
 
 			{/* Volume Controls */}
-			<div className="toolbar-section volume-section">
+			<div
+				className="toolbar-section volume-section"
+				data-testid="volume-controls"
+			>
 				<label>Recording Volume:</label>
 				<input
 					type="range"

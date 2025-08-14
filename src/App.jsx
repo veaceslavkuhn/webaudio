@@ -143,24 +143,25 @@ const AppContent = () => {
 	};
 
 	return (
-		<div className="audacity-app">
-			<MenuBar onMenuAction={openModal} />
-			<Toolbar />
+		<div className="audacity-app" data-testid="app-container">
+			<MenuBar data-testid="menu-bar" onMenuAction={openModal} />
+			<Toolbar data-testid="toolbar" />
 
-			<div className="main-content">
-				<div className="timeline-container">
-					<Timeline />
+			<div className="main-content" data-testid="main-content">
+				<div className="timeline-container" data-testid="timeline-container">
+					<Timeline data-testid="timeline" />
 				</div>
 
-				<div className="tracks-container">
+				<div className="tracks-container" data-testid="tracks-container">
 					{state.tracks.length === 0 ? (
-						<div className="empty-project">
+						<div className="empty-project" data-testid="empty-project">
 							<div className="empty-message">
 								<h3>No audio tracks</h3>
 								<p>Import audio files to get started</p>
 								<button
 									type="button"
 									className="button primary"
+									data-testid="import-audio-button"
 									onClick={() => openModal("file")}
 								>
 									Import Audio
@@ -168,16 +169,20 @@ const AppContent = () => {
 							</div>
 						</div>
 					) : (
-						<div className="track-list">
+						<div className="track-list" data-testid="track-list">
 							{Array.from(state.tracks.values()).map((track) => (
-								<TrackPanel key={track.id} track={track} />
+								<TrackPanel
+									key={track.id}
+									track={track}
+									data-testid={`track-panel-${track.id}`}
+								/>
 							))}
 						</div>
 					)}
 				</div>
 			</div>
 
-			<StatusBar />
+			<StatusBar data-testid="status-bar" />
 
 			{/* Modals */}
 			<FileModal

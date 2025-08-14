@@ -78,9 +78,11 @@ const Modal = ({
 			role="dialog"
 			aria-modal="true"
 			aria-labelledby="modal-title"
+			data-testid="modal-overlay"
 		>
 			<div
 				className={`modal-content ${size} ${type} ${isClosing ? "closing" : ""}`}
+				data-testid="modal-content"
 			>
 				<div className="modal-header">
 					<div className="modal-title-container">
@@ -95,6 +97,7 @@ const Modal = ({
 							className="modal-close"
 							onClick={handleClose}
 							aria-label="Close modal"
+							data-testid="modal-close"
 						>
 							<X size={20} />
 						</button>
@@ -130,16 +133,27 @@ const ConfirmModal = ({
 			type={type}
 			size="small"
 		>
-			<div className="confirm-modal-content">
-				<p className="confirm-message">{message}</p>
-				<div className="confirm-actions">
-					<button type="button" className="button secondary" onClick={onClose}>
+			<div
+				className="confirm-modal-content"
+				data-testid="confirm-modal-content"
+			>
+				<p className="confirm-message" data-testid="confirm-message">
+					{message}
+				</p>
+				<div className="confirm-actions" data-testid="confirm-actions">
+					<button
+						type="button"
+						className="button secondary"
+						onClick={onClose}
+						data-testid="confirm-cancel-button"
+					>
 						{cancelText}
 					</button>
 					<button
 						type="button"
 						className={`button ${type === "error" ? "danger" : "primary"}`}
 						onClick={handleConfirm}
+						data-testid="confirm-button"
 					>
 						{confirmText}
 					</button>
@@ -190,12 +204,13 @@ const FileModal = ({
 
 	return (
 		<Modal isOpen={isOpen} onClose={onClose} title={title} size="medium">
-			<div className="file-modal-content">
+			<div className="file-modal-content" data-testid="file-modal-content">
 				<div
 					className={`file-drop-zone ${dragOver ? "drag-over" : ""}`}
 					onDrop={handleDrop}
 					onDragOver={handleDragOver}
 					onDragLeave={handleDragLeave}
+					data-testid="file-drop-zone"
 				>
 					<div className="file-drop-content">
 						<p>Drop audio files here or click to browse</p>
@@ -206,16 +221,18 @@ const FileModal = ({
 							onChange={handleFileInput}
 							className="file-input"
 							id="file-input"
+							data-testid="file-input"
 						/>
 						<label
 							htmlFor="file-input"
 							className="file-input-label button primary"
+							data-testid="choose-files-button"
 						>
 							Choose Files
 						</label>
 					</div>
 				</div>
-				<div className="supported-formats">
+				<div className="supported-formats" data-testid="supported-formats">
 					<p>
 						<strong>Supported formats:</strong> WAV, MP3, FLAC, AIFF, M4A
 					</p>
@@ -247,13 +264,14 @@ const ExportModal = ({ isOpen, onClose, onExport, tracks = [] }) => {
 
 	return (
 		<Modal isOpen={isOpen} onClose={onClose} title="Export Audio" size="medium">
-			<div className="export-modal-content">
-				<div className="export-options">
+			<div className="export-modal-content" data-testid="export-modal-content">
+				<div className="export-options" data-testid="export-options">
 					<div className="option-group">
 						<label>Format:</label>
 						<select
 							value={exportOptions.format}
 							onChange={(e) => handleOptionChange("format", e.target.value)}
+							data-testid="export-format-select"
 						>
 							<option value="wav">WAV</option>
 							<option value="mp3">MP3</option>
@@ -268,6 +286,7 @@ const ExportModal = ({ isOpen, onClose, onExport, tracks = [] }) => {
 							onChange={(e) =>
 								handleOptionChange("sampleRate", parseInt(e.target.value))
 							}
+							data-testid="export-sample-rate-select"
 						>
 							<option value={22050}>22050 Hz</option>
 							<option value={44100}>44100 Hz</option>
@@ -284,6 +303,7 @@ const ExportModal = ({ isOpen, onClose, onExport, tracks = [] }) => {
 								handleOptionChange("bitDepth", parseInt(e.target.value))
 							}
 							disabled={exportOptions.format === "mp3"}
+							data-testid="export-bit-depth-select"
 						>
 							<option value={16}>16-bit</option>
 							<option value={24}>24-bit</option>
@@ -296,6 +316,7 @@ const ExportModal = ({ isOpen, onClose, onExport, tracks = [] }) => {
 						<select
 							value={exportOptions.channels}
 							onChange={(e) => handleOptionChange("channels", e.target.value)}
+							data-testid="export-channels-select"
 						>
 							<option value="mono">Mono</option>
 							<option value="stereo">Stereo</option>
@@ -309,6 +330,7 @@ const ExportModal = ({ isOpen, onClose, onExport, tracks = [] }) => {
 							onChange={(e) =>
 								handleOptionChange("exportTracks", e.target.value)
 							}
+							data-testid="export-tracks-select"
 						>
 							<option value="mix">Mixed Down</option>
 							<option value="selection">Selection Only</option>
@@ -317,14 +339,20 @@ const ExportModal = ({ isOpen, onClose, onExport, tracks = [] }) => {
 					</div>
 				</div>
 
-				<div className="export-actions">
-					<button type="button" className="button secondary" onClick={onClose}>
+				<div className="export-actions" data-testid="export-actions">
+					<button
+						type="button"
+						className="button secondary"
+						onClick={onClose}
+						data-testid="export-cancel-button"
+					>
 						Cancel
 					</button>
 					<button
 						type="button"
 						className="button primary"
 						onClick={handleExport}
+						data-testid="export-button"
 					>
 						Export
 					</button>
@@ -370,7 +398,7 @@ const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
 
 	return (
 		<Modal isOpen={isOpen} onClose={onClose} title={getTitle()}>
-			<div className="generate-modal">
+			<div className="generate-modal" data-testid="generate-modal">
 				<div className="form-group">
 					<label>Duration (seconds):</label>
 					<input
@@ -380,6 +408,7 @@ const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
 						min="0.1"
 						max="60"
 						step="0.1"
+						data-testid="duration-input"
 					/>
 				</div>
 
@@ -393,6 +422,7 @@ const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
 							min="0"
 							max="1"
 							step="0.01"
+							data-testid="amplitude-input"
 						/>
 						<span>{amplitude.toFixed(2)}</span>
 					</div>
@@ -408,6 +438,7 @@ const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
 								onChange={(e) => setFrequency(parseInt(e.target.value))}
 								min="20"
 								max="20000"
+								data-testid="frequency-input"
 							/>
 						</div>
 						<div className="form-group">
@@ -415,6 +446,7 @@ const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
 							<select
 								value={waveform}
 								onChange={(e) => setWaveform(e.target.value)}
+								data-testid="waveform-select"
 							>
 								<option value="sine">Sine</option>
 								<option value="square">Square</option>
@@ -431,6 +463,7 @@ const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
 						<select
 							value={noiseType}
 							onChange={(e) => setNoiseType(e.target.value)}
+							data-testid="noise-type-select"
 						>
 							<option value="white">White Noise</option>
 							<option value="pink">Pink Noise</option>
@@ -438,14 +471,20 @@ const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
 					</div>
 				)}
 
-				<div className="modal-actions">
-					<button type="button" className="button secondary" onClick={onClose}>
+				<div className="modal-actions" data-testid="generate-actions">
+					<button
+						type="button"
+						className="button secondary"
+						onClick={onClose}
+						data-testid="generate-cancel-button"
+					>
 						Cancel
 					</button>
 					<button
 						type="button"
 						className="button primary"
 						onClick={handleGenerate}
+						data-testid="generate-button"
 					>
 						Generate
 					</button>
@@ -633,7 +672,7 @@ const EffectModal = ({ isOpen, onClose, onApply, effectName }) => {
 
 	return (
 		<Modal isOpen={isOpen} onClose={onClose} title={config.title}>
-			<div className="effect-modal">
+			<div className="effect-modal" data-testid="effect-modal">
 				{config.params.map((param) => (
 					<div key={param.name} className="form-group">
 						<label>{param.label}:</label>
@@ -650,18 +689,25 @@ const EffectModal = ({ isOpen, onClose, onApply, effectName }) => {
 							min={param.min}
 							max={param.max}
 							step={param.step}
+							data-testid={`effect-param-${param.name}`}
 						/>
 					</div>
 				))}
 
-				<div className="modal-actions">
-					<button type="button" className="button secondary" onClick={onClose}>
+				<div className="modal-actions" data-testid="effect-actions">
+					<button
+						type="button"
+						className="button secondary"
+						onClick={onClose}
+						data-testid="effect-cancel-button"
+					>
 						Cancel
 					</button>
 					<button
 						type="button"
 						className="button primary"
 						onClick={handleApply}
+						data-testid="effect-apply-button"
 					>
 						Apply Effect
 					</button>
@@ -692,8 +738,14 @@ const PreferencesModal = ({ isOpen, onClose, onSave }) => {
 
 	return (
 		<Modal isOpen={isOpen} onClose={onClose} title="Preferences" size="medium">
-			<div className="preferences-modal-content">
-				<div className="preference-section">
+			<div
+				className="preferences-modal-content"
+				data-testid="preferences-modal-content"
+			>
+				<div
+					className="preference-section"
+					data-testid="audio-settings-section"
+				>
 					<h4>Audio Settings</h4>
 					<div className="form-group">
 						<label>Sample Rate:</label>
@@ -702,6 +754,7 @@ const PreferencesModal = ({ isOpen, onClose, onSave }) => {
 							onChange={(e) =>
 								updateSetting("sampleRate", parseInt(e.target.value))
 							}
+							data-testid="sample-rate-select"
 						>
 							<option value={22050}>22,050 Hz</option>
 							<option value={44100}>44,100 Hz</option>
@@ -716,6 +769,7 @@ const PreferencesModal = ({ isOpen, onClose, onSave }) => {
 							onChange={(e) =>
 								updateSetting("bitDepth", parseInt(e.target.value))
 							}
+							data-testid="bit-depth-select"
 						>
 							<option value={16}>16-bit</option>
 							<option value={24}>24-bit</option>
@@ -729,6 +783,7 @@ const PreferencesModal = ({ isOpen, onClose, onSave }) => {
 							onChange={(e) =>
 								updateSetting("bufferSize", parseInt(e.target.value))
 							}
+							data-testid="buffer-size-select"
 						>
 							<option value={256}>256 samples</option>
 							<option value={512}>512 samples</option>
@@ -738,7 +793,10 @@ const PreferencesModal = ({ isOpen, onClose, onSave }) => {
 					</div>
 				</div>
 
-				<div className="preference-section">
+				<div
+					className="preference-section"
+					data-testid="general-settings-section"
+				>
 					<h4>General Settings</h4>
 					<div className="form-group">
 						<label>
@@ -748,6 +806,7 @@ const PreferencesModal = ({ isOpen, onClose, onSave }) => {
 								onChange={(e) =>
 									updateSetting("enableAutoSave", e.target.checked)
 								}
+								data-testid="auto-save-checkbox"
 							/>
 							Enable Auto-Save
 						</label>
@@ -757,6 +816,7 @@ const PreferencesModal = ({ isOpen, onClose, onSave }) => {
 						<select
 							value={settings.theme}
 							onChange={(e) => updateSetting("theme", e.target.value)}
+							data-testid="theme-select"
 						>
 							<option value="light">Light</option>
 							<option value="dark">Dark</option>
@@ -764,11 +824,21 @@ const PreferencesModal = ({ isOpen, onClose, onSave }) => {
 					</div>
 				</div>
 
-				<div className="modal-buttons">
-					<button type="button" onClick={onClose} className="button secondary">
+				<div className="modal-buttons" data-testid="preferences-actions">
+					<button
+						type="button"
+						onClick={onClose}
+						className="button secondary"
+						data-testid="preferences-cancel-button"
+					>
 						Cancel
 					</button>
-					<button type="button" onClick={handleSave} className="button primary">
+					<button
+						type="button"
+						onClick={handleSave}
+						className="button primary"
+						data-testid="preferences-save-button"
+					>
 						Save Settings
 					</button>
 				</div>
@@ -786,13 +856,13 @@ const AboutModal = ({ isOpen, onClose }) => {
 			title="About WebAudacity"
 			size="medium"
 		>
-			<div className="about-modal-content">
-				<div className="about-header">
+			<div className="about-modal-content" data-testid="about-modal-content">
+				<div className="about-header" data-testid="about-header">
 					<h2>WebAudacity</h2>
 					<p className="version">Version 1.0.0</p>
 				</div>
 
-				<div className="about-description">
+				<div className="about-description" data-testid="about-description">
 					<p>
 						A modern, browser-based audio editing application that replicates
 						Audacity's core functionality using Web Audio API. No downloads or
@@ -800,7 +870,7 @@ const AboutModal = ({ isOpen, onClose }) => {
 					</p>
 				</div>
 
-				<div className="about-features">
+				<div className="about-features" data-testid="about-features">
 					<h4>Features:</h4>
 					<ul>
 						<li>Multi-track audio editing</li>
@@ -812,14 +882,19 @@ const AboutModal = ({ isOpen, onClose }) => {
 					</ul>
 				</div>
 
-				<div className="about-credits">
+				<div className="about-credits" data-testid="about-credits">
 					<h4>Credits:</h4>
 					<p>Built with Web Audio API, React, and modern web technologies.</p>
 					<p>Inspired by Audacity - the original free audio editor.</p>
 				</div>
 
-				<div className="modal-buttons">
-					<button type="button" onClick={onClose} className="button primary">
+				<div className="modal-buttons" data-testid="about-actions">
+					<button
+						type="button"
+						onClick={onClose}
+						className="button primary"
+						data-testid="about-close-button"
+					>
 						Close
 					</button>
 				</div>
@@ -940,20 +1015,22 @@ const HelpModal = ({ isOpen, onClose }) => {
 
 	return (
 		<Modal isOpen={isOpen} onClose={onClose} title="Help" size="large">
-			<div className="help-modal-content">
-				<div className="help-sidebar">
+			<div className="help-modal-content" data-testid="help-modal-content">
+				<div className="help-sidebar" data-testid="help-sidebar">
 					{Object.entries(helpSections).map(([key, section]) => (
 						<button
 							key={key}
+							type="button"
 							className={`help-nav-item ${activeSection === key ? "active" : ""}`}
 							onClick={() => setActiveSection(key)}
+							data-testid={`help-nav-${key}`}
 						>
 							{section.title}
 						</button>
 					))}
 				</div>
 
-				<div className="help-content">
+				<div className="help-content" data-testid="help-content">
 					<h3>{helpSections[activeSection].title}</h3>
 					{helpSections[activeSection].content}
 				</div>
@@ -1165,8 +1242,11 @@ const SpectrumModal = ({ isOpen, onClose, tracks }) => {
 			title="Spectrum Analyzer"
 			size="large"
 		>
-			<div className="spectrum-modal-content">
-				<div className="spectrum-controls">
+			<div
+				className="spectrum-modal-content"
+				data-testid="spectrum-modal-content"
+			>
+				<div className="spectrum-controls" data-testid="spectrum-controls">
 					<div className="form-group">
 						<label htmlFor="track-select">Track:</label>
 						<select
@@ -1174,6 +1254,7 @@ const SpectrumModal = ({ isOpen, onClose, tracks }) => {
 							value={selectedTrack || ""}
 							onChange={(e) => setSelectedTrack(e.target.value)}
 							disabled={availableTracks.length === 0}
+							data-testid="spectrum-track-select"
 						>
 							{availableTracks.length === 0 ? (
 								<option value="">No tracks available</option>
@@ -1192,6 +1273,7 @@ const SpectrumModal = ({ isOpen, onClose, tracks }) => {
 							id="analysis-type-select"
 							value={analysisType}
 							onChange={(e) => setAnalysisType(e.target.value)}
+							data-testid="spectrum-analysis-type-select"
 						>
 							<option value="frequency">Frequency Spectrum</option>
 							<option value="waveform">Waveform</option>
@@ -1200,7 +1282,7 @@ const SpectrumModal = ({ isOpen, onClose, tracks }) => {
 					</div>
 				</div>
 
-				<div className="spectrum-display">
+				<div className="spectrum-display" data-testid="spectrum-display">
 					<canvas
 						ref={canvasRef}
 						width={600}
@@ -1211,21 +1293,27 @@ const SpectrumModal = ({ isOpen, onClose, tracks }) => {
 							backgroundColor: "#1a1a1a",
 							border: "1px solid #333",
 						}}
+						data-testid="spectrum-canvas"
 					/>
 					{!analysisData && selectedTrack && (
-						<div className="spectrum-status">
+						<div className="spectrum-status" data-testid="spectrum-analyzing">
 							<p>Analyzing audio...</p>
 						</div>
 					)}
 					{!selectedTrack && (
-						<div className="spectrum-status">
+						<div className="spectrum-status" data-testid="spectrum-no-track">
 							<p>Select a track to begin analysis</p>
 						</div>
 					)}
 				</div>
 
-				<div className="modal-buttons">
-					<button type="button" onClick={onClose} className="button secondary">
+				<div className="modal-buttons" data-testid="spectrum-actions">
+					<button
+						type="button"
+						onClick={onClose}
+						className="button secondary"
+						data-testid="spectrum-close-button"
+					>
 						Close
 					</button>
 					<button
@@ -1233,6 +1321,7 @@ const SpectrumModal = ({ isOpen, onClose, tracks }) => {
 						className="button primary"
 						onClick={exportAnalysis}
 						disabled={!analysisData}
+						data-testid="spectrum-export-button"
 					>
 						Export Analysis
 					</button>

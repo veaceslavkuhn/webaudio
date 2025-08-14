@@ -130,8 +130,12 @@ const Timeline = () => {
 	}, [resizeCanvas, drawTimeline]);
 
 	return (
-		<div className="timeline">
-			<canvas ref={canvasRef} className="timeline-canvas" />
+		<div className="timeline" data-testid="timeline">
+			<canvas
+				ref={canvasRef}
+				className="timeline-canvas"
+				data-testid="timeline-canvas"
+			/>
 		</div>
 	);
 };

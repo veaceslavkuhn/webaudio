@@ -106,15 +106,20 @@ const TrackPanel = ({ track }) => {
 	return (
 		<div
 			className={`track-panel ${state.selectedTrackId === track.id ? "selected" : ""}`}
+			data-testid={`track-panel-${track.id}`}
 		>
-			<div className="track-header">
-				<div className="track-controls">
+			<div className="track-header" data-testid={`track-header-${track.id}`}>
+				<div
+					className="track-controls"
+					data-testid={`track-controls-${track.id}`}
+				>
 					<button
 						type="button"
 						className="track-solo"
 						onClick={() => actions.toggleTrackSolo(track.id)}
 						disabled={!track.audioBuffer}
 						aria-label={`${track.solo ? "Unsolo" : "Solo"} track ${track.name}`}
+						data-testid={`track-solo-${track.id}`}
 					>
 						S
 					</button>
@@ -124,11 +129,12 @@ const TrackPanel = ({ track }) => {
 						onClick={() => actions.toggleTrackMute(track.id)}
 						disabled={!track.audioBuffer}
 						aria-label={`${track.mute ? "Unmute" : "Mute"} track ${track.name}`}
+						data-testid={`track-mute-${track.id}`}
 					>
 						M
 					</button>
 				</div>
-				<div className="track-info">
+				<div className="track-info" data-testid={`track-info-${track.id}`}>
 					<div className="track-name">{track.name}</div>
 					<div className="track-format">
 						{track.audioBuffer
@@ -136,7 +142,7 @@ const TrackPanel = ({ track }) => {
 							: "No audio"}
 					</div>
 				</div>
-				<div className="track-volume">
+				<div className="track-volume" data-testid={`track-volume-${track.id}`}>
 					<input
 						type="range"
 						min="0"
@@ -148,17 +154,23 @@ const TrackPanel = ({ track }) => {
 						}
 						className="volume-slider"
 						aria-label={`Volume for track ${track.name}`}
+						data-testid={`track-volume-slider-${track.id}`}
 					/>
 					<span className="volume-value">{Math.round(track.gain * 100)}%</span>
 				</div>
 			</div>
-			<div ref={containerRef} className="track-waveform-container">
+			<div
+				ref={containerRef}
+				className="track-waveform-container"
+				data-testid={`track-waveform-container-${track.id}`}
+			>
 				<canvas
 					ref={canvasRef}
 					className="track-waveform"
 					onMouseDown={handleMouseDown}
 					onDoubleClick={handleDoubleClick}
 					style={{ cursor: isDragging ? "text" : "crosshair" }}
+					data-testid={`track-waveform-${track.id}`}
 				/>
 				{/* Playhead indicator */}
 				{state.playheadPosition >= 0 && (

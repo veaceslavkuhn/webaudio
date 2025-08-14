@@ -272,18 +272,22 @@ const MenuBar = ({ onMenuAction }) => {
 	};
 
 	return (
-		<div className="menu-bar">
+		<div className="menu-bar" data-testid="menu-bar">
 			<div className="menu-items">
 				{menuItems.map((menu, index) => (
 					<div
 						key={menu.label}
 						className="menu-item"
+						data-testid={`menu-item-${menu.label.toLowerCase()}`}
 						onMouseEnter={() => setActiveMenu(index)}
 						onMouseLeave={() => setActiveMenu(null)}
 					>
 						<span onClick={() => handleMenuClick(index)}>{menu.label}</span>
 						{activeMenu === index && (
-							<div className="dropdown">
+							<div
+								className="dropdown"
+								data-testid={`dropdown-${menu.label.toLowerCase()}`}
+							>
 								{menu.items.map((item, itemIndex) =>
 									item.type === "separator" ? (
 										<hr key={itemIndex} />
@@ -294,6 +298,7 @@ const MenuBar = ({ onMenuAction }) => {
 											disabled={item.disabled}
 											type="button"
 											className={item.disabled ? "disabled" : ""}
+											data-testid={`menu-item-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
 										>
 											{item.label}
 										</button>

@@ -43,8 +43,8 @@ const StatusBar = () => {
 	const selectionInfo = getSelectionInfo();
 
 	return (
-		<div className="status-bar">
-			<div className="status-section">
+		<div className="status-bar" data-testid="status-bar">
+			<div className="status-section" data-testid="project-info">
 				<div className="status-item">
 					<span className="status-label">Project Rate:</span>
 					<span className="status-value">{state.sampleRate} Hz</span>

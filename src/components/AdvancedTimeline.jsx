@@ -275,14 +275,18 @@ const AdvancedTimeline = () => {
 	}, [resizeCanvas, drawTimeline]);
 
 	return (
-		<div className="advanced-timeline">
-			<div className="timeline-controls">
-				<div className="timeline-control-group">
+		<div className="advanced-timeline" data-testid="advanced-timeline">
+			<div className="timeline-controls" data-testid="timeline-controls">
+				<div
+					className="timeline-control-group"
+					data-testid="timeline-general-controls"
+				>
 					<label>
 						<input
 							type="checkbox"
 							checked={snapToGrid}
 							onChange={(e) => setSnapToGrid(e.target.checked)}
+							data-testid="snap-to-grid-checkbox"
 						/>
 						Snap to Grid
 					</label>
@@ -292,18 +296,23 @@ const AdvancedTimeline = () => {
 							type="checkbox"
 							checked={showBeats}
 							onChange={(e) => setShowBeats(e.target.checked)}
+							data-testid="show-beats-checkbox"
 						/>
 						Show Beats
 					</label>
 				</div>
 
 				{!showBeats && (
-					<div className="timeline-control-group">
+					<div
+						className="timeline-control-group"
+						data-testid="timeline-grid-controls"
+					>
 						<label>
 							Grid Size:
 							<select
 								value={gridSize}
 								onChange={(e) => setGridSize(parseFloat(e.target.value))}
+								data-testid="grid-size-select"
 							>
 								<option value={0.1}>0.1s</option>
 								<option value={0.5}>0.5s</option>
@@ -315,7 +324,10 @@ const AdvancedTimeline = () => {
 				)}
 
 				{showBeats && (
-					<div className="timeline-control-group">
+					<div
+						className="timeline-control-group"
+						data-testid="timeline-beat-controls"
+					>
 						<label>
 							BPM:
 							<input
@@ -325,6 +337,7 @@ const AdvancedTimeline = () => {
 								min="60"
 								max="200"
 								style={{ width: "60px" }}
+								data-testid="bpm-input"
 							/>
 						</label>
 
@@ -336,6 +349,7 @@ const AdvancedTimeline = () => {
 									const [num, den] = e.target.value.split("/").map(Number);
 									setTimeSignature({ numerator: num, denominator: den });
 								}}
+								data-testid="time-signature-select"
 							>
 								<option value="4/4">4/4</option>
 								<option value="3/4">3/4</option>
@@ -346,7 +360,10 @@ const AdvancedTimeline = () => {
 					</div>
 				)}
 
-				<div className="timeline-control-group">
+				<div
+					className="timeline-control-group"
+					data-testid="timeline-loop-controls"
+				>
 					<button
 						type="button"
 						className="button small"
@@ -356,6 +373,7 @@ const AdvancedTimeline = () => {
 							handleLoopRegionSet(start, end);
 						}}
 						disabled={!state.selection?.start || !state.selection?.end}
+						data-testid="set-loop-button"
 					>
 						Set Loop
 					</button>
@@ -365,6 +383,7 @@ const AdvancedTimeline = () => {
 						className="button small"
 						onClick={clearLoopRegion}
 						disabled={!loopRegion.start && !loopRegion.end}
+						data-testid="clear-loop-button"
 					>
 						Clear Loop
 					</button>
@@ -381,6 +400,7 @@ const AdvancedTimeline = () => {
 					cursor: "crosshair",
 					display: "block",
 				}}
+				data-testid="advanced-timeline-canvas"
 			/>
 		</div>
 	);
