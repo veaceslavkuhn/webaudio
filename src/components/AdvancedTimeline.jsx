@@ -69,18 +69,18 @@ const AdvancedTimeline = () => {
 			const rect = canvas.getBoundingClientRect();
 			const originalWidthStyle = canvas.style.width;
 			const originalHeightStyle = canvas.style.height;
-			
+
 			canvas.width = rect.width * window.devicePixelRatio;
 			canvas.height = rect.height * window.devicePixelRatio;
-			
+
 			// Preserve original CSS styles if they were percentage-based
-			if (originalWidthStyle.includes('%')) {
+			if (originalWidthStyle.includes("%")) {
 				canvas.style.width = originalWidthStyle;
 			} else {
 				canvas.style.width = rect.width + "px";
 			}
-			
-			if (originalHeightStyle.includes('%')) {
+
+			if (originalHeightStyle.includes("%")) {
 				canvas.style.height = originalHeightStyle;
 			} else {
 				canvas.style.height = rect.height + "px";
@@ -225,7 +225,8 @@ const AdvancedTimeline = () => {
 
 			// Draw playhead
 			if (state.playheadPosition >= 0) {
-				const playheadX = (state.playheadPosition - startTime) * pixelsPerSecond;
+				const playheadX =
+					(state.playheadPosition - startTime) * pixelsPerSecond;
 				if (playheadX >= 0 && playheadX <= width) {
 					ctx.strokeStyle = "#ff4444";
 					ctx.lineWidth = 2;
