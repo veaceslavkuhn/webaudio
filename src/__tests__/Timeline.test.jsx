@@ -51,7 +51,7 @@ describe("Timeline Component", () => {
 			</TimelineWrapper>,
 		);
 
-		const canvas = document.querySelector(".timeline-canvas");
+		const canvas = screen.getByTestId("timeline-canvas");
 		expect(canvas).toBeInTheDocument();
 		expect(canvas.tagName).toBe("CANVAS");
 	});
@@ -63,7 +63,7 @@ describe("Timeline Component", () => {
 			</TimelineWrapper>,
 		);
 
-		const canvas = document.querySelector(".timeline-canvas");
+		const canvas = screen.getByTestId("timeline-canvas");
 		expect(canvas).toHaveAttribute("width", "800");
 		expect(canvas).toHaveAttribute("height", "60");
 	});
@@ -75,7 +75,7 @@ describe("Timeline Component", () => {
 			</TimelineWrapper>,
 		);
 
-		const container = document.querySelector(".timeline");
+		const container = screen.getByTestId("timeline");
 		expect(container).toHaveClass("timeline");
 	});
 
@@ -86,7 +86,7 @@ describe("Timeline Component", () => {
 			</TimelineWrapper>,
 		);
 
-		const canvas = document.querySelector(".timeline-canvas");
+		const canvas = screen.getByTestId("timeline-canvas");
 
 		// Test mouse events don't throw errors
 		expect(() => {
@@ -103,7 +103,7 @@ describe("Timeline Component", () => {
 			</TimelineWrapper>,
 		);
 
-		const canvas = document.querySelector(".timeline-canvas");
+		const canvas = screen.getByTestId("timeline-canvas");
 
 		// Test wheel event doesn't throw errors
 		expect(() => {
@@ -117,7 +117,7 @@ describe("Timeline Component", () => {
 			</TimelineWrapper>,
 		);
 
-		const canvas = document.querySelector(".timeline-canvas");
+		const canvas = screen.getByTestId("timeline-canvas");
 
 		// Test keyboard events don't throw errors
 		expect(() => {

@@ -260,8 +260,8 @@ describe('AudioEngineService', () => {
 			trackId = audioEngine.generateTone(440, 1.0, 0.5, 'sine');
 		});
 
-		test('should play track', () => {
-			audioEngine.play(trackId, 0, 1.0);
+		test('should play track', async () => {
+			await audioEngine.play(trackId, 0, 1.0);
 
 			expect(audioEngine.isPlaying).toBe(true);
 			expect(mockAudioContext.createBufferSource).toHaveBeenCalled();

@@ -269,6 +269,7 @@ export const AudioProvider = ({ children }) => {
 	const [state, dispatch] = useReducer(audioReducer, initialState);
 	const audioEngineRef = useRef(null);
 	const effectsProcessorRef = useRef(null);
+	const undoRedoManagerRef = useRef(null);
 
 	// Helper function to ensure effects processor is initialized
 	const ensureEffectsProcessor = useCallback(async () => {
@@ -300,6 +301,31 @@ export const AudioProvider = ({ children }) => {
 		}
 	}, []);
 
+	// Define specific functions needed in useEffect callbacks
+	const addTrack = useCallback((trackId, trackInfo) => {
+		dispatch({
+			type: ActionTypes.ADD_TRACK,
+			payload: {
+				id: trackId,
+				track: {
+					info: trackInfo,
+					muted: false,
+					solo: false,
+					volume: 0.8,
+					pan: 0,
+					visible: true,
+				},
+			},
+		});
+	}, []);
+
+	const updateTotalDuration = useCallback(() => {
+		if (audioEngineRef.current) {
+			const duration = audioEngineRef.current.getTotalDuration();
+			dispatch({ type: ActionTypes.SET_TOTAL_DURATION, payload: duration });
+		}
+	}, []);
+
 	// Initialize audio services
 	useEffect(() => {
 		const initializeAudio = async () => {
@@ -321,8 +347,8 @@ export const AudioProvider = ({ children }) => {
 				audioEngineRef.current.onRecordingFinished = (trackId) => {
 					const trackInfo = audioEngineRef.current.getTrackInfo(trackId);
 					if (trackInfo) {
-						actions.addTrack(trackId, trackInfo);
-						actions.updateTotalDuration();
+						addTrack(trackId, trackInfo);
+						updateTotalDuration();
 					}
 				};
 
@@ -354,7 +380,7 @@ export const AudioProvider = ({ children }) => {
 				audioEngineRef.current.destroy();
 			}
 		};
-	}, []);
+	}, [addTrack, updateTotalDuration]);
 
 	// Actions
 	const actions = {
@@ -450,22 +476,7 @@ export const AudioProvider = ({ children }) => {
 		}, []),
 
 		// Track management
-		addTrack: useCallback((trackId, trackInfo) => {
-			dispatch({
-				type: ActionTypes.ADD_TRACK,
-				payload: {
-					id: trackId,
-					track: {
-						info: trackInfo,
-						muted: false,
-						solo: false,
-						volume: 0.8,
-						pan: 0,
-						visible: true,
-					},
-				},
-			});
-		}, []),
+		addTrack,
 
 		removeTrack: useCallback((trackId) => {
 			if (audioEngineRef.current) {
@@ -747,12 +758,7 @@ export const AudioProvider = ({ children }) => {
 		}, []),
 
 		// Utility
-		updateTotalDuration: useCallback(() => {
-			if (audioEngineRef.current) {
-				const duration = audioEngineRef.current.getTotalDuration();
-				dispatch({ type: ActionTypes.SET_TOTAL_DURATION, payload: duration });
-			}
-		}, []),
+		updateTotalDuration,
 
 		getEffectParameters: useCallback(
 			async (effectName) => {

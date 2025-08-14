@@ -71,7 +71,11 @@ describe('AudioEngine Recording', () => {
 					autoGainControl: false,
 				},
 			});
-			expect(mockAudioContext.createMediaStreamSource).toHaveBeenCalledWith(mockMediaStream);
+			expect(mockAudioContext.createMediaStreamSource).toHaveBeenCalledWith(
+				expect.objectContaining({
+					getTracks: expect.any(Function)
+				})
+			);
 			expect(mockAudioContext.createScriptProcessor).toHaveBeenCalledWith(4096, 2, 2);
 			expect(mockMediaStreamSource.connect).toHaveBeenCalledWith(mockScriptProcessor);
 			expect(mockScriptProcessor.connect).toHaveBeenCalledWith(mockAudioContext.destination);
