@@ -2,23 +2,33 @@ import { SpectrumAnalyzer } from '../services/SpectrumAnalyzer';
 
 // Mock Web Audio API
 const mockAudioContext = {
-	createAnalyser: jest.fn(() => ({
-		fftSize: 2048,
-		frequencyBinCount: 1024,
-		getByteFrequencyData: jest.fn((array) => {
-			// Fill with mock frequency data
-			for (let i = 0; i < array.length; i++) {
-				array[i] = Math.floor(Math.random() * 255);
+	createAnalyser: jest.fn(() => {
+		const analyser = {
+			fftSize: 2048,
+			getByteFrequencyData: jest.fn((array) => {
+				// Fill with mock frequency data
+				for (let i = 0; i < array.length; i++) {
+					array[i] = Math.floor(Math.random() * 255);
+				}
+			}),
+			getByteTimeDomainData: jest.fn((array) => {
+				// Fill with mock time domain data
+				for (let i = 0; i < array.length; i++) {
+					array[i] = 128 + Math.sin(i * 0.1) * 50;
+				}
+			}),
+			disconnect: jest.fn()
+		};
+		
+		// Make frequencyBinCount a getter that returns fftSize/2
+		Object.defineProperty(analyser, 'frequencyBinCount', {
+			get() {
+				return this.fftSize / 2;
 			}
-		}),
-		getByteTimeDomainData: jest.fn((array) => {
-			// Fill with mock time domain data
-			for (let i = 0; i < array.length; i++) {
-				array[i] = 128 + Math.sin(i * 0.1) * 50;
-			}
-		}),
-		disconnect: jest.fn()
-	})),
+		});
+		
+		return analyser;
+	}),
 	close: jest.fn()
 };
 
@@ -168,7 +178,7 @@ describe('Spectrum Analyzer', () => {
 			expect(bins).toBeInstanceOf(Array);
 			expect(bins.length).toBe(1024);
 			expect(bins[0]).toBe(0); // First bin at 0 Hz
-			expect(bins[bins.length - 1]).toBeCloseTo(22050, 0); // Last bin at Nyquist
+			expect(bins[bins.length - 1]).toBeCloseTo(22028.47, 2); // Last bin just under Nyquist
 		});
 
 		test('should find peak frequency', () => {
@@ -177,7 +187,7 @@ describe('Spectrum Analyzer', () => {
 			
 			const peakFreq = spectrumAnalyzer.getPeakFrequency(frequencyData, 44100);
 			
-			expect(peakFreq).toBeCloseTo(2156.25, 0); // 100 * 22050 / 1024
+			expect(peakFreq).toBeCloseTo(2153.32, 2); // 100 * 22050 / 1024
 		});
 
 		test('should calculate spectral centroid', () => {

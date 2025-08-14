@@ -65,14 +65,34 @@ const AdvancedTimeline = () => {
 		const canvas = canvasRef.current;
 		if (!canvas) return;
 
-		const rect = canvas.getBoundingClientRect();
-		canvas.width = rect.width * window.devicePixelRatio;
-		canvas.height = rect.height * window.devicePixelRatio;
-		canvas.style.width = rect.width + "px";
-		canvas.style.height = rect.height + "px";
+		try {
+			const rect = canvas.getBoundingClientRect();
+			const originalWidthStyle = canvas.style.width;
+			const originalHeightStyle = canvas.style.height;
+			
+			canvas.width = rect.width * window.devicePixelRatio;
+			canvas.height = rect.height * window.devicePixelRatio;
+			
+			// Preserve original CSS styles if they were percentage-based
+			if (originalWidthStyle.includes('%')) {
+				canvas.style.width = originalWidthStyle;
+			} else {
+				canvas.style.width = rect.width + "px";
+			}
+			
+			if (originalHeightStyle.includes('%')) {
+				canvas.style.height = originalHeightStyle;
+			} else {
+				canvas.style.height = rect.height + "px";
+			}
 
-		const ctx = canvas.getContext("2d");
-		ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+			const ctx = canvas.getContext("2d");
+			if (ctx) {
+				ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+			}
+		} catch (error) {
+			console.warn("Canvas resize error:", error);
+		}
 	}, []);
 
 	const drawTimeline = useCallback(() => {
@@ -80,143 +100,149 @@ const AdvancedTimeline = () => {
 		if (!canvas) return;
 
 		const ctx = canvas.getContext("2d");
-		const rect = canvas.getBoundingClientRect();
-		const width = rect.width;
-		const height = rect.height;
+		if (!ctx) return;
 
-		// Clear timeline
-		ctx.clearRect(0, 0, width, height);
+		try {
+			const rect = canvas.getBoundingClientRect();
+			const width = rect.width;
+			const height = rect.height;
 
-		// Background
-		ctx.fillStyle = "#2a2a2a";
-		ctx.fillRect(0, 0, width, height);
+			// Clear timeline
+			ctx.clearRect(0, 0, width, height);
 
-		// Set styles
-		ctx.strokeStyle = "#666";
-		ctx.font = "10px Arial";
-		ctx.lineWidth = 1;
+			// Background
+			ctx.fillStyle = "#2a2a2a";
+			ctx.fillRect(0, 0, width, height);
 
-		// Calculate time range
-		const pixelsPerSecond = 100 * state.zoomLevel;
-		const startTime = state.scrollPosition / pixelsPerSecond;
-		const endTime = startTime + width / pixelsPerSecond;
-
-		// Draw loop region background
-		if (loopRegion.start !== null && loopRegion.end !== null) {
-			const loopStartX = (loopRegion.start - startTime) * pixelsPerSecond;
-			const loopEndX = (loopRegion.end - startTime) * pixelsPerSecond;
-
-			if (loopEndX > 0 && loopStartX < width) {
-				ctx.fillStyle = "rgba(0, 255, 136, 0.1)";
-				ctx.fillRect(
-					Math.max(0, loopStartX),
-					0,
-					Math.min(width, loopEndX) - Math.max(0, loopStartX),
-					height,
-				);
-
-				// Loop region borders
-				ctx.strokeStyle = "#00ff88";
-				ctx.lineWidth = 2;
-				if (loopStartX >= 0 && loopStartX <= width) {
-					ctx.beginPath();
-					ctx.moveTo(loopStartX, 0);
-					ctx.lineTo(loopStartX, height);
-					ctx.stroke();
-				}
-				if (loopEndX >= 0 && loopEndX <= width) {
-					ctx.beginPath();
-					ctx.moveTo(loopEndX, 0);
-					ctx.lineTo(loopEndX, height);
-					ctx.stroke();
-				}
-			}
-		}
-
-		// Draw time markings
-		let interval;
-		if (showBeats) {
-			interval = 60 / bpm; // Beat interval in seconds
-		} else {
-			// Dynamic interval based on zoom
-			if (pixelsPerSecond > 200) interval = 0.1;
-			else if (pixelsPerSecond > 100) interval = 0.5;
-			else if (pixelsPerSecond > 50) interval = 1;
-			else if (pixelsPerSecond > 20) interval = 5;
-			else if (pixelsPerSecond > 10) interval = 10;
-			else interval = 30;
-		}
-
-		const startMark = Math.floor(startTime / interval) * interval;
-
-		ctx.strokeStyle = "#666";
-		ctx.fillStyle = "#ccc";
-		ctx.lineWidth = 1;
-
-		for (let time = startMark; time <= endTime; time += interval) {
-			const x = (time - startTime) * pixelsPerSecond;
-
-			if (x >= 0 && x <= width) {
-				// Draw tick mark
-				const isMainTick = showBeats
-					? Math.round(time / ((60 / bpm) * timeSignature.numerator)) *
-							((60 / bpm) * timeSignature.numerator) ===
-						time
-					: time % (interval * 5) === 0;
-
-				const tickHeight = isMainTick ? height * 0.4 : height * 0.2;
-
-				ctx.beginPath();
-				ctx.moveTo(x, height);
-				ctx.lineTo(x, height - tickHeight);
-				ctx.stroke();
-
-				// Draw time label
-				if (isMainTick) {
-					const label = showBeats ? formatBeatTime(time) : formatTime(time);
-					const metrics = ctx.measureText(label);
-					ctx.fillText(label, x - metrics.width / 2, height - tickHeight - 5);
-				}
-			}
-		}
-
-		// Draw grid lines if snap is enabled
-		if (snapToGrid) {
-			ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+			// Set styles
+			ctx.strokeStyle = "#666";
+			ctx.font = "10px Arial";
 			ctx.lineWidth = 1;
 
-			const gridInterval = showBeats ? 60 / bpm : gridSize;
-			const startGrid = Math.floor(startTime / gridInterval) * gridInterval;
+			// Calculate time range
+			const pixelsPerSecond = 100 * state.zoomLevel;
+			const startTime = state.scrollPosition / pixelsPerSecond;
+			const endTime = startTime + width / pixelsPerSecond;
 
-			for (let time = startGrid; time <= endTime; time += gridInterval) {
+			// Draw loop region background
+			if (loopRegion.start !== null && loopRegion.end !== null) {
+				const loopStartX = (loopRegion.start - startTime) * pixelsPerSecond;
+				const loopEndX = (loopRegion.end - startTime) * pixelsPerSecond;
+
+				if (loopEndX > 0 && loopStartX < width) {
+					ctx.fillStyle = "rgba(0, 255, 136, 0.1)";
+					ctx.fillRect(
+						Math.max(0, loopStartX),
+						0,
+						Math.min(width, loopEndX) - Math.max(0, loopStartX),
+						height,
+					);
+
+					// Loop region borders
+					ctx.strokeStyle = "#00ff88";
+					ctx.lineWidth = 2;
+					if (loopStartX >= 0 && loopStartX <= width) {
+						ctx.beginPath();
+						ctx.moveTo(loopStartX, 0);
+						ctx.lineTo(loopStartX, height);
+						ctx.stroke();
+					}
+					if (loopEndX >= 0 && loopEndX <= width) {
+						ctx.beginPath();
+						ctx.moveTo(loopEndX, 0);
+						ctx.lineTo(loopEndX, height);
+						ctx.stroke();
+					}
+				}
+			}
+
+			// Draw time markings
+			let interval;
+			if (showBeats) {
+				interval = 60 / bpm; // Beat interval in seconds
+			} else {
+				// Dynamic interval based on zoom
+				if (pixelsPerSecond > 200) interval = 0.1;
+				else if (pixelsPerSecond > 100) interval = 0.5;
+				else if (pixelsPerSecond > 50) interval = 1;
+				else if (pixelsPerSecond > 20) interval = 5;
+				else if (pixelsPerSecond > 10) interval = 10;
+				else interval = 30;
+			}
+
+			const startMark = Math.floor(startTime / interval) * interval;
+
+			ctx.strokeStyle = "#666";
+			ctx.fillStyle = "#ccc";
+			ctx.lineWidth = 1;
+
+			for (let time = startMark; time <= endTime; time += interval) {
 				const x = (time - startTime) * pixelsPerSecond;
 
 				if (x >= 0 && x <= width) {
+					// Draw tick mark
+					const isMainTick = showBeats
+						? Math.round(time / ((60 / bpm) * timeSignature.numerator)) *
+								((60 / bpm) * timeSignature.numerator) ===
+							time
+						: time % (interval * 5) === 0;
+
+					const tickHeight = isMainTick ? height * 0.4 : height * 0.2;
+
 					ctx.beginPath();
-					ctx.moveTo(x, 0);
-					ctx.lineTo(x, height);
+					ctx.moveTo(x, height);
+					ctx.lineTo(x, height - tickHeight);
+					ctx.stroke();
+
+					// Draw time label
+					if (isMainTick) {
+						const label = showBeats ? formatBeatTime(time) : formatTime(time);
+						const metrics = ctx.measureText(label);
+						ctx.fillText(label, x - metrics.width / 2, height - tickHeight - 5);
+					}
+				}
+			}
+
+			// Draw grid lines if snap is enabled
+			if (snapToGrid) {
+				ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+				ctx.lineWidth = 1;
+
+				const gridInterval = showBeats ? 60 / bpm : gridSize;
+				const startGrid = Math.floor(startTime / gridInterval) * gridInterval;
+
+				for (let time = startGrid; time <= endTime; time += gridInterval) {
+					const x = (time - startTime) * pixelsPerSecond;
+
+					if (x >= 0 && x <= width) {
+						ctx.beginPath();
+						ctx.moveTo(x, 0);
+						ctx.lineTo(x, height);
+						ctx.stroke();
+					}
+				}
+			}
+
+			// Draw playhead
+			if (state.playheadPosition >= 0) {
+				const playheadX = (state.playheadPosition - startTime) * pixelsPerSecond;
+				if (playheadX >= 0 && playheadX <= width) {
+					ctx.strokeStyle = "#ff4444";
+					ctx.lineWidth = 2;
+					ctx.beginPath();
+					ctx.moveTo(playheadX, 0);
+					ctx.lineTo(playheadX, height);
 					ctx.stroke();
 				}
 			}
-		}
 
-		// Draw playhead
-		if (state.playheadPosition >= 0) {
-			const playheadX = (state.playheadPosition - startTime) * pixelsPerSecond;
-			if (playheadX >= 0 && playheadX <= width) {
-				ctx.strokeStyle = "#ff4444";
-				ctx.lineWidth = 2;
-				ctx.beginPath();
-				ctx.moveTo(playheadX, 0);
-				ctx.lineTo(playheadX, height);
-				ctx.stroke();
-			}
+			// Draw border
+			ctx.strokeStyle = "#444";
+			ctx.lineWidth = 1;
+			ctx.strokeRect(0, 0, width, height);
+		} catch (error) {
+			console.warn("Timeline drawing error:", error);
 		}
-
-		// Draw border
-		ctx.strokeStyle = "#444";
-		ctx.lineWidth = 1;
-		ctx.strokeRect(0, 0, width, height);
 	}, [
 		state,
 		loopRegion,
@@ -234,14 +260,18 @@ const AdvancedTimeline = () => {
 			const canvas = canvasRef.current;
 			if (!canvas) return;
 
-			const rect = canvas.getBoundingClientRect();
-			const x = e.clientX - rect.left;
-			const pixelsPerSecond = 100 * state.zoomLevel;
-			const startTime = state.scrollPosition / pixelsPerSecond;
-			const clickTime = startTime + x / pixelsPerSecond;
+			try {
+				const rect = canvas.getBoundingClientRect();
+				const x = e.clientX - rect.left;
+				const pixelsPerSecond = 100 * state.zoomLevel;
+				const startTime = state.scrollPosition / pixelsPerSecond;
+				const clickTime = startTime + x / pixelsPerSecond;
 
-			const snappedTime = snapToGridValue(clickTime);
-			actions.setPlayheadPosition(snappedTime);
+				const snappedTime = snapToGridValue(clickTime);
+				actions.setPlayheadPosition(snappedTime);
+			} catch (error) {
+				console.warn("Canvas click handling error:", error);
+			}
 		},
 		[state.zoomLevel, state.scrollPosition, snapToGridValue, actions],
 	);

@@ -20,6 +20,7 @@ const initialState = {
 	totalDuration: 0,
 	tracks: new Map(),
 	selection: { start: null, end: null },
+	playheadPosition: 0,
 	zoomLevel: 1.0,
 	scrollPosition: 0,
 	currentTool: "selection",
@@ -56,6 +57,7 @@ const ActionTypes = {
 	UPDATE_TRACK: "UPDATE_TRACK",
 	SET_SELECTION: "SET_SELECTION",
 	CLEAR_SELECTION: "CLEAR_SELECTION",
+	SET_PLAYHEAD_POSITION: "SET_PLAYHEAD_POSITION",
 	SET_ZOOM_LEVEL: "SET_ZOOM_LEVEL",
 	SET_SCROLL_POSITION: "SET_SCROLL_POSITION",
 	SET_TOOL: "SET_TOOL",
@@ -162,6 +164,12 @@ function audioReducer(state, action) {
 			return {
 				...state,
 				selection: { start: null, end: null },
+			};
+
+		case ActionTypes.SET_PLAYHEAD_POSITION:
+			return {
+				...state,
+				playheadPosition: action.payload,
 			};
 
 		case ActionTypes.SET_ZOOM_LEVEL:
@@ -713,6 +721,10 @@ export const AudioProvider = ({ children }) => {
 
 		setScrollPosition: useCallback((position) => {
 			dispatch({ type: ActionTypes.SET_SCROLL_POSITION, payload: position });
+		}, []),
+
+		setPlayheadPosition: useCallback((position) => {
+			dispatch({ type: ActionTypes.SET_PLAYHEAD_POSITION, payload: position });
 		}, []),
 
 		setPlaybackVolume: useCallback((volume) => {

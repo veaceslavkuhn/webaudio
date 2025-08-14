@@ -1,10 +1,59 @@
 import { renderHook } from "@testing-library/react";
 import React from "react";
+import { AudioProvider } from "../context/AudioContext";
 import {
 	useFileDrop,
 	useKeyboardShortcuts,
 	useWaveformRenderer,
 } from "../hooks/useAudioHooks";
+
+// Mock AudioContext and dependencies
+global.AudioContext = jest.fn().mockImplementation(() => ({
+	createGain: jest.fn().mockReturnValue({
+		connect: jest.fn(),
+		disconnect: jest.fn(),
+		gain: { value: 1 },
+	}),
+	createAnalyser: jest.fn().mockReturnValue({
+		connect: jest.fn(),
+		disconnect: jest.fn(),
+		frequencyBinCount: 1024,
+		getFloatFrequencyData: jest.fn(),
+		getByteFrequencyData: jest.fn(),
+	}),
+	createBuffer: jest.fn(),
+	createBufferSource: jest.fn().mockReturnValue({
+		connect: jest.fn(),
+		start: jest.fn(),
+		stop: jest.fn(),
+		buffer: null,
+	}),
+	destination: {},
+	sampleRate: 44100,
+	currentTime: 0,
+	state: 'running',
+	resume: jest.fn().mockResolvedValue(),
+	close: jest.fn().mockResolvedValue(),
+}));
+
+// Mock MediaRecorder
+global.MediaRecorder = jest.fn().mockImplementation(() => ({
+	start: jest.fn(),
+	stop: jest.fn(),
+	addEventListener: jest.fn(),
+	removeEventListener: jest.fn(),
+	state: 'inactive',
+}));
+
+// Mock navigator.mediaDevices
+Object.defineProperty(global.navigator, 'mediaDevices', {
+	value: {
+		getUserMedia: jest.fn().mockResolvedValue({
+			getTracks: jest.fn().mockReturnValue([]),
+		}),
+	},
+	writable: true,
+});
 
 // Mock canvas and Web Audio API
 global.HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
@@ -31,33 +80,8 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 	disconnect: jest.fn(),
 }));
 
-// Mock AudioProvider with simpler implementation for testing
-const MockAudioProvider = ({ children }) => {
-	const mockState = {
-		isInitialized: true,
-		tracks: new Map(),
-		isPlaying: false,
-		currentTime: 0,
-		selection: { start: null, end: null },
-		zoomLevel: 1,
-		scrollPosition: 0,
-	};
-
-	const mockActions = {
-		play: jest.fn(),
-		pause: jest.fn(),
-		stop: jest.fn(),
-	};
-
-	return (
-		<div data-testid="mock-provider">
-			{React.cloneElement(children, { state: mockState, actions: mockActions })}
-		</div>
-	);
-};
-
-// Wrapper component
-const wrapper = ({ children }) => <MockAudioProvider>{children}</MockAudioProvider>;
+// Wrapper component - use the real AudioProvider for proper context
+const wrapper = ({ children }) => React.createElement(AudioProvider, null, children);
 
 describe("useAudioHooks", () => {
 	describe("useFileDrop", () => {

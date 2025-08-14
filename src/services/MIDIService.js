@@ -22,13 +22,11 @@ export class MIDIService {
 				throw new Error('Web MIDI API not supported in this browser');
 			}
 
-			this.midiAccess = await navigator.requestMIDIAccess({ sysex: false });
-			this.isConnected = true;
-			
-			// Set up device listeners
-			this.midiAccess.onstatechange = (event) => this.handleDeviceStateChange(event);
-			
-			// Initialize existing devices
+		this.midiAccess = await navigator.requestMIDIAccess({ sysex: false });
+		this.isConnected = true;
+		
+		// Set up device listeners
+		this.midiAccess.onstatechange = this.handleDeviceStateChange;			// Initialize existing devices
 			this.updateDevices();
 			
 			return true;
@@ -48,7 +46,7 @@ export class MIDIService {
 		// Add input devices
 		for (const input of this.midiAccess.inputs.values()) {
 			this.inputDevices.set(input.id, input);
-			input.onmidimessage = (event) => this.handleMIDIMessage(event);
+			input.onmidimessage = this.handleMIDIMessage;
 		}
 
 		// Add output devices

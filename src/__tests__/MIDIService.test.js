@@ -296,8 +296,7 @@ describe('MIDI Service', () => {
 
 	describe('MIDI File Loading', () => {
 		test('should load valid MIDI file', async () => {
-			// Create minimal MIDI file data
-			const midiData = new ArrayBuffer(22);
+			const midiData = new ArrayBuffer(26);
 			const view = new DataView(midiData);
 			
 			// "MThd" header
@@ -321,9 +320,15 @@ describe('MIDI Service', () => {
 			view.setUint8(17, 0x6B);
 			view.setUint32(18, 4);
 			
+			// Track data: delta-time (0) + end-of-track event (0xFF 0x2F 0x00)
+			view.setUint8(22, 0x00); // delta-time
+			view.setUint8(23, 0xFF); // meta event
+			view.setUint8(24, 0x2F); // end of track
+			view.setUint8(25, 0x00); // length
+			
 			const mockFile = {
 				name: 'test.mid',
-				size: 22,
+				size: 26,
 				arrayBuffer: () => Promise.resolve(midiData)
 			};
 			
