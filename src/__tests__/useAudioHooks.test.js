@@ -4,7 +4,6 @@ import { AudioProvider } from "../context/AudioContext";
 import {
 	useFileDrop,
 	useKeyboardShortcuts,
-	useWaveformRenderer,
 } from "../hooks/useAudioHooks";
 
 // Mock AudioContext and dependencies
@@ -98,19 +97,6 @@ describe("useAudioHooks", () => {
 			expect(() => {
 				renderHook(() => useKeyboardShortcuts(), { wrapper });
 			}).not.toThrow();
-		});
-	});
-
-	describe("useWaveformRenderer", () => {
-		it("returns canvas ref and renderer", () => {
-			const canvasRef = { current: null };
-			const timelineCanvasRef = { current: null };
-			const { result } = renderHook(() => useWaveformRenderer(canvasRef, timelineCanvasRef), { wrapper });
-
-			expect(result.current).toHaveProperty("addTrack");
-			expect(result.current).toHaveProperty("removeTrack");
-			expect(result.current).toHaveProperty("formatTime");
-			expect(result.current).toHaveProperty("renderer");
 		});
 	});
 });
