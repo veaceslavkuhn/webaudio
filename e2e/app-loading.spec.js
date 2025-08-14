@@ -19,7 +19,7 @@ test.describe("WebAudacity - Application Loading & Initialization", () => {
 			page.locator('[data-testid="timeline"], .timeline'),
 		).toBeVisible();
 		await expect(
-			page.locator('[data-testid="track-panel"], .track-panel'),
+			page.locator('[data-testid="tracks-container"], .tracks-container'),
 		).toBeVisible();
 		await expect(
 			page.locator('[data-testid="status-bar"], .status-bar'),

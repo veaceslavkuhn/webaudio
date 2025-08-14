@@ -12,80 +12,85 @@ test.describe("WebAudacity - Menu Bar Functionality", () => {
 	test("should display all menu items", async ({ page }) => {
 		// Check that all main menu items are present
 		const expectedMenuItems = [
-			"File",
-			"Edit",
-			"Generate",
-			"Effect",
-			"Analyze",
-			"Tools",
-			"Help",
+			"file",
+			"edit", 
+			"generate",
+			"effect",
+			"analyze",
+			"tools",
+			"help",
 		];
 
 		for (const menuItem of expectedMenuItems) {
-			await expect(page.getByRole("button", { name: menuItem })).toBeVisible();
+			await expect(page.locator(`[data-testid="menu-item-${menuItem}"]`)).toBeVisible();
 		}
 	});
 
 	test("should open and close File menu", async ({ page }) => {
-		const fileButton = page.getByRole("button", { name: "File" });
+		const fileMenuItem = page.locator('[data-testid="menu-item-file"]');
 
 		// Click to open the File menu
-		await fileButton.click();
+		await fileMenuItem.click();
 
-		// Verify menu is open (check for common file menu items)
-		await expect(page.getByText("Import")).toBeVisible();
-		await expect(page.getByText("Export")).toBeVisible();
+		// Verify menu is open (check for dropdown)
+		await expect(page.locator('[data-testid="dropdown-file"]')).toBeVisible();
+		await expect(page.locator('[data-testid="menu-item-import->-audio..."]')).toBeVisible();
+		await expect(page.locator('[data-testid="menu-item-export-audio..."]')).toBeVisible();
 
-		// Close menu by clicking elsewhere or pressing Escape
-		await page.keyboard.press("Escape");
+		// Close menu by clicking the menu item again (toggle)
+		await fileMenuItem.click();
 
 		// Verify menu is closed
-		await expect(page.getByText("Import")).not.toBeVisible();
+		await expect(page.locator('[data-testid="dropdown-file"]')).not.toBeVisible();
 	});
 
 	test("should open and close Edit menu", async ({ page }) => {
-		const editButton = page.getByRole("button", { name: "Edit" });
+		const editMenuItem = page.locator('[data-testid="menu-item-edit"]');
 
-		await editButton.click();
+		await editMenuItem.click();
 
-		// Check for common edit menu items
-		await expect(page.getByText("Undo")).toBeVisible();
-		await expect(page.getByText("Redo")).toBeVisible();
+		// Check for dropdown and common edit menu items
+		await expect(page.locator('[data-testid="dropdown-edit"]')).toBeVisible();
+		await expect(page.locator('[data-testid="menu-item-undo"]')).toBeVisible();
+		await expect(page.locator('[data-testid="menu-item-redo"]')).toBeVisible();
 
 		await page.keyboard.press("Escape");
 	});
 
 	test("should open and close Generate menu", async ({ page }) => {
-		const generateButton = page.getByRole("button", { name: "Generate" });
+		const generateMenuItem = page.locator('[data-testid="menu-item-generate"]');
 
-		await generateButton.click();
+		await generateMenuItem.click();
 
-		// Check for common generate menu items
-		await expect(page.getByText("Tone")).toBeVisible();
-		await expect(page.getByText("Noise")).toBeVisible();
+		// Check for dropdown and common generate menu items
+		await expect(page.locator('[data-testid="dropdown-generate"]')).toBeVisible();
+		await expect(page.locator('[data-testid="menu-item-tone..."]')).toBeVisible();
+		await expect(page.locator('[data-testid="menu-item-noise..."]')).toBeVisible();
 
 		await page.keyboard.press("Escape");
 	});
 
 	test("should open and close Effect menu", async ({ page }) => {
-		const effectButton = page.getByRole("button", { name: "Effect" });
+		const effectMenuItem = page.locator('[data-testid="menu-item-effect"]');
 
-		await effectButton.click();
+		await effectMenuItem.click();
 
-		// Check for common effect menu items
-		await expect(page.getByText("Amplify")).toBeVisible();
-		await expect(page.getByText("Normalize")).toBeVisible();
+		// Check for dropdown and common effect menu items
+		await expect(page.locator('[data-testid="dropdown-effect"]')).toBeVisible();
+		await expect(page.locator('[data-testid="menu-item-amplify..."]')).toBeVisible();
+		await expect(page.locator('[data-testid="menu-item-normalize..."]')).toBeVisible();
 
 		await page.keyboard.press("Escape");
 	});
 
 	test("should open and close Help menu", async ({ page }) => {
-		const helpButton = page.getByRole("button", { name: "Help" });
+		const helpMenuItem = page.locator('[data-testid="menu-item-help"]');
 
-		await helpButton.click();
+		await helpMenuItem.click();
 
-		// Check for help menu items
-		await expect(page.getByText("About")).toBeVisible();
+		// Check for dropdown and help menu items
+		await expect(page.locator('[data-testid="dropdown-help"]')).toBeVisible();
+		await expect(page.locator('[data-testid="menu-item-about-webaudacity"]')).toBeVisible();
 
 		await page.keyboard.press("Escape");
 	});

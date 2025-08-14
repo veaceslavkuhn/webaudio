@@ -16,10 +16,13 @@ test.describe("WebAudacity - Timeline & Track Management", () => {
 	});
 
 	test("should display track panel", async ({ page }) => {
-		// Check that track panel is rendered
+		// Check that tracks container is rendered (may be empty initially)
 		await expect(
-			page.locator('[data-testid="track-panel"], .track-panel'),
+			page.locator('[data-testid="tracks-container"], .tracks-container'),
 		).toBeVisible();
+		
+		// Initially should show empty project since no audio is loaded
+		await expect(page.locator('[data-testid="empty-project"]')).toBeVisible();
 	});
 
 	test("should display time ruler", async ({ page }) => {
@@ -107,26 +110,26 @@ test.describe("WebAudacity - Timeline & Track Management", () => {
 	});
 
 	test("should maintain proper layout structure", async ({ page }) => {
-		// Ensure timeline and track panel are properly positioned
+		// Ensure timeline and tracks container are properly positioned
 		const timeline = page
 			.locator('[data-testid="timeline"], .timeline')
 			.first();
-		const trackPanel = page
-			.locator('[data-testid="track-panel"], .track-panel')
+		const tracksContainer = page
+			.locator('[data-testid="tracks-container"], .tracks-container')
 			.first();
 
 		// Both should be visible
 		await expect(timeline).toBeVisible();
-		await expect(trackPanel).toBeVisible();
+		await expect(tracksContainer).toBeVisible();
 
 		// Get their positions to ensure proper layout
 		const timelineBox = await timeline.boundingBox();
-		const trackPanelBox = await trackPanel.boundingBox();
+		const tracksContainerBox = await tracksContainer.boundingBox();
 
 		// Both should have reasonable dimensions
 		expect(timelineBox?.width).toBeGreaterThan(0);
 		expect(timelineBox?.height).toBeGreaterThan(0);
-		expect(trackPanelBox?.width).toBeGreaterThan(0);
-		expect(trackPanelBox?.height).toBeGreaterThan(0);
+		expect(tracksContainerBox?.width).toBeGreaterThan(0);
+		expect(tracksContainerBox?.height).toBeGreaterThan(0);
 	});
 });

@@ -60,12 +60,12 @@ test.describe("WebAudacity - Keyboard Shortcuts & Error Handling", () => {
 
 	test("should handle escape key for closing modals", async ({ page }) => {
 		// Open a modal
-		await page.getByRole("button", { name: "Help" }).click();
-		await page.getByText("About").click();
+		await page.locator('[data-testid="menu-item-help"]').click();
+		await page.locator('[data-testid="menu-item-about-webaudacity"]').click();
 
 		// Modal should be open
 		await expect(
-			page.locator('[data-testid="about-modal"], .modal'),
+			page.locator('[data-testid="about-modal-content"]'),
 		).toBeVisible();
 
 		// Press escape to close

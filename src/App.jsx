@@ -153,7 +153,7 @@ const AppContent = () => {
 				</div>
 
 				<div className="tracks-container" data-testid="tracks-container">
-					{state.tracks.length === 0 ? (
+					{state.tracks.size === 0 ? (
 						<div className="empty-project" data-testid="empty-project">
 							<div className="empty-message">
 								<h3>No audio tracks</h3>
