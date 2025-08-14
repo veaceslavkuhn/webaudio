@@ -269,7 +269,20 @@ export const AudioProvider = ({ children }) => {
 	const [state, dispatch] = useReducer(audioReducer, initialState);
 	const audioEngineRef = useRef(null);
 	const effectsProcessorRef = useRef(null);
-	const undoRedoManagerRef = useRef(null);
+
+	// Helper function to ensure effects processor is initialized
+	const ensureEffectsProcessor = useCallback(async () => {
+		if (!effectsProcessorRef.current && audioEngineRef.current) {
+			// Ensure audio context is ready first
+			const contextReady = await audioEngineRef.current.ensureAudioContext();
+			if (contextReady) {
+				effectsProcessorRef.current = new EffectsProcessorService(
+					audioEngineRef.current.audioContext,
+				);
+			}
+		}
+		return effectsProcessorRef.current;
+	}, []);
 
 	// Initialize undo/redo manager
 	if (!undoRedoManagerRef.current) {
@@ -293,7 +306,7 @@ export const AudioProvider = ({ children }) => {
 			try {
 				dispatch({ type: ActionTypes.SET_LOADING, payload: true });
 
-				// Create audio engine
+				// Create audio engine (but don't initialize AudioContext yet)
 				audioEngineRef.current = new AudioEngineService();
 
 				// Set up callbacks
@@ -321,22 +334,8 @@ export const AudioProvider = ({ children }) => {
 					dispatch({ type: ActionTypes.SET_STATUS, payload: status });
 				};
 
-				// Initialize audio context
-				const success = await audioEngineRef.current.initializeAudioContext();
-
-				if (success) {
-					// Create effects processor
-					effectsProcessorRef.current = new EffectsProcessorService(
-						audioEngineRef.current.audioContext,
-					);
-
-					dispatch({ type: ActionTypes.INITIALIZE_SUCCESS });
-				} else {
-					dispatch({
-						type: ActionTypes.INITIALIZE_ERROR,
-						payload: "Failed to initialize audio context",
-					});
-				}
+				// Mark as initialized (AudioContext will be created on first user interaction)
+				dispatch({ type: ActionTypes.INITIALIZE_SUCCESS });
 			} catch (error) {
 				dispatch({
 					type: ActionTypes.INITIALIZE_ERROR,
@@ -602,7 +601,7 @@ export const AudioProvider = ({ children }) => {
 
 				actions.updateTotalDuration();
 				dispatch({ type: ActionTypes.SET_STATUS, payload: "Pasted audio" });
-			} catch (error) {
+			} catch {
 				dispatch({
 					type: ActionTypes.SET_ERROR,
 					payload: "Failed to paste audio",
@@ -617,8 +616,9 @@ export const AudioProvider = ({ children }) => {
 
 		// Effects
 		applyEffect: useCallback(
-			(effectName, parameters) => {
-				if (!effectsProcessorRef.current || !audioEngineRef.current) return;
+			async (effectName, parameters) => {
+				const effectsProcessor = await ensureEffectsProcessor();
+				if (!effectsProcessor || !audioEngineRef.current) return;
 
 				if (!state.selection.start || !state.selection.end) {
 					dispatch({
@@ -635,7 +635,7 @@ export const AudioProvider = ({ children }) => {
 						for (const [trackId] of state.tracks) {
 							const trackInfo = audioEngineRef.current.getTrackInfo(trackId);
 							if (trackInfo) {
-								const newBuffer = effectsProcessorRef.current.applyEffect(
+								const newBuffer = effectsProcessor.applyEffect(
 									effectName,
 									trackInfo.buffer,
 									parameters,
@@ -661,7 +661,7 @@ export const AudioProvider = ({ children }) => {
 					}
 				}, 100);
 			},
-			[state.selection, state.tracks],
+			[state.selection, state.tracks, ensureEffectsProcessor],
 		),
 
 		// Generate audio
@@ -754,12 +754,16 @@ export const AudioProvider = ({ children }) => {
 			}
 		}, []),
 
-		getEffectParameters: useCallback((effectName) => {
-			if (effectsProcessorRef.current) {
-				return effectsProcessorRef.current.getEffectParameters(effectName);
-			}
-			return [];
-		}, []),
+		getEffectParameters: useCallback(
+			async (effectName) => {
+				const effectsProcessor = await ensureEffectsProcessor();
+				if (effectsProcessor) {
+					return effectsProcessor.getEffectParameters(effectName);
+				}
+				return [];
+			},
+			[ensureEffectsProcessor],
+		),
 
 		// Undo/Redo actions
 		undo: useCallback(() => {

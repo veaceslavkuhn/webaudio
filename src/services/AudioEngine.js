@@ -43,11 +43,6 @@ export class AudioEngineService {
 			this.masterGain = this.audioContext.createGain();
 			this.masterGain.connect(this.audioContext.destination);
 
-			// Resume context if suspended (autoplay policy)
-			if (this.audioContext.state === "suspended") {
-				await this.audioContext.resume();
-			}
-
 			console.log("Audio context initialized:", this.audioContext);
 			return true;
 		} catch (error) {
@@ -55,6 +50,27 @@ export class AudioEngineService {
 			this.onError?.("Web Audio API not supported");
 			return false;
 		}
+	}
+
+	async ensureAudioContext() {
+		if (!this.audioContext) {
+			const success = await this.initializeAudioContext();
+			if (!success) return false;
+		}
+
+		// Resume context if suspended (autoplay policy)
+		if (this.audioContext.state === "suspended") {
+			try {
+				await this.audioContext.resume();
+				console.log("Audio context resumed");
+			} catch (error) {
+				console.error("Failed to resume audio context:", error);
+				this.onError?.("Failed to activate audio context. Please try clicking on the page first.");
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	async requestMicrophoneAccess() {
@@ -82,6 +98,10 @@ export class AudioEngineService {
 		if (this.isRecording) return;
 
 		try {
+			// Ensure audio context is ready
+			const contextReady = await this.ensureAudioContext();
+			if (!contextReady) return;
+
 			if (!this.recordingStream) {
 				await this.requestMicrophoneAccess();
 			}
@@ -234,7 +254,11 @@ export class AudioEngineService {
 		}
 	}
 
-	play(trackId = null, startTime = 0, duration = null) {
+	async play(trackId = null, startTime = 0, duration = null) {
+		// Ensure audio context is ready
+		const contextReady = await this.ensureAudioContext();
+		if (!contextReady) return;
+
 		if (this.isPlaying) {
 			this.stop();
 		}
