@@ -8,6 +8,10 @@ export class AudioEngineService {
 		this.audioContext = null;
 		this.mediaRecorder = null;
 		this.recordingStream = null;
+		this.recordingSource = null;
+		this.recordingProcessor = null;
+		this.recordingBuffers = null;
+		this.recordingLength = 0;
 		this.audioBuffers = new Map();
 		this.playingSources = new Map();
 		this.currentTime = 0;
@@ -82,35 +86,34 @@ export class AudioEngineService {
 				await this.requestMicrophoneAccess();
 			}
 
-			this.mediaRecorder = new MediaRecorder(this.recordingStream, {
-				mimeType: "audio/webm;codecs=opus",
-			});
-
-			this.recordingData = [];
-
-			this.mediaRecorder.ondataavailable = (event) => {
-				if (event.data.size > 0) {
-					this.recordingData.push(event.data);
-				}
+			// Use Web Audio API for recording instead of MediaRecorder
+			this.recordingSource = this.audioContext.createMediaStreamSource(this.recordingStream);
+			this.recordingProcessor = this.audioContext.createScriptProcessor(4096, 2, 2);
+			this.recordingBuffers = [[], []]; // Left and right channels
+			this.recordingLength = 0;
+			
+			this.recordingProcessor.onaudioprocess = (event) => {
+				if (!this.isRecording) return;
+				
+				const inputBuffer = event.inputBuffer;
+				const leftChannel = inputBuffer.getChannelData(0);
+				const rightChannel = inputBuffer.numberOfChannels > 1 ? 
+					inputBuffer.getChannelData(1) : leftChannel;
+				
+				// Copy data to our recording buffers
+				this.recordingBuffers[0].push(new Float32Array(leftChannel));
+				this.recordingBuffers[1].push(new Float32Array(rightChannel));
+				this.recordingLength += leftChannel.length;
 			};
+			
+			// Connect the recording chain
+			this.recordingSource.connect(this.recordingProcessor);
+			this.recordingProcessor.connect(this.audioContext.destination);
 
-			this.mediaRecorder.onstop = async () => {
-				const blob = new Blob(this.recordingData, {
-					type: "audio/webm;codecs=opus",
-				});
-				const trackId = await this.loadAudioFromBlob(
-					blob,
-					"Recording " + Date.now(),
-				);
-				this.recordingData = [];
-				this.onRecordingFinished?.(trackId);
-			};
-
-			this.mediaRecorder.start(100);
 			this.isRecording = true;
 			this.onStatusChange?.("Recording...");
 
-			console.log("Recording started");
+			console.log("Recording started with Web Audio API");
 		} catch (error) {
 			console.error("Failed to start recording:", error);
 			this.onError?.("Recording failed: " + error.message);
@@ -121,13 +124,69 @@ export class AudioEngineService {
 	stopRecording() {
 		if (!this.isRecording) return;
 
-		if (this.mediaRecorder && this.mediaRecorder.state === "recording") {
-			this.mediaRecorder.stop();
+		this.isRecording = false;
+
+		// Disconnect the recording chain
+		if (this.recordingSource) {
+			this.recordingSource.disconnect();
+		}
+		if (this.recordingProcessor) {
+			this.recordingProcessor.disconnect();
 		}
 
-		this.isRecording = false;
+		// Process the recorded audio data
+		if (this.recordingBuffers && this.recordingLength > 0) {
+			this.processRecordingBuffers();
+		}
+
 		this.onStatusChange?.("Recording stopped");
 		console.log("Recording stopped");
+	}
+
+	processRecordingBuffers() {
+		try {
+			// Create audio buffer from recorded data
+			const audioBuffer = this.audioContext.createBuffer(
+				2, // stereo
+				this.recordingLength,
+				this.audioContext.sampleRate
+			);
+
+			// Merge recorded chunks into continuous buffers
+			const leftData = audioBuffer.getChannelData(0);
+			const rightData = audioBuffer.getChannelData(1);
+			
+			let offset = 0;
+			for (let i = 0; i < this.recordingBuffers[0].length; i++) {
+				const leftChunk = this.recordingBuffers[0][i];
+				const rightChunk = this.recordingBuffers[1][i];
+				
+				leftData.set(leftChunk, offset);
+				rightData.set(rightChunk, offset);
+				offset += leftChunk.length;
+			}
+
+			// Create track from recorded buffer
+			const trackId = "recording_" + Date.now();
+			this.audioBuffers.set(trackId, {
+				buffer: audioBuffer,
+				name: "Recording " + new Date().toLocaleTimeString(),
+				duration: audioBuffer.duration,
+				sampleRate: audioBuffer.sampleRate,
+				numberOfChannels: audioBuffer.numberOfChannels,
+			});
+
+			// Clean up recording data
+			this.recordingBuffers = null;
+			this.recordingLength = 0;
+
+			console.log("Recording processed successfully:", trackId);
+			this.onRecordingFinished?.(trackId);
+
+		} catch (error) {
+			console.error("Failed to process recording:", error);
+			this.onError?.("Failed to process recording: " + error.message);
+		}
 	}
 
 	async loadAudioFromFile(file) {
@@ -238,7 +297,7 @@ export class AudioEngineService {
 		for (const [, source] of this.playingSources) {
 			try {
 				source.stop();
-			} catch (error) {
+			} catch {
 				// Source might already be stopped
 			}
 		}
@@ -645,9 +704,30 @@ export class AudioEngineService {
 	destroy() {
 		this.stop();
 
+		// Stop recording if active
+		if (this.isRecording) {
+			this.stopRecording();
+		}
+
+		// Clean up recording resources
+		if (this.recordingSource) {
+			this.recordingSource.disconnect();
+			this.recordingSource = null;
+		}
+		
+		if (this.recordingProcessor) {
+			this.recordingProcessor.disconnect();
+			this.recordingProcessor = null;
+		}
+
 		if (this.recordingStream) {
 			this.recordingStream.getTracks().forEach((track) => track.stop());
+			this.recordingStream = null;
 		}
+
+		// Clean up recording buffers
+		this.recordingBuffers = null;
+		this.recordingLength = 0;
 
 		if (this.audioContext) {
 			this.audioContext.close();
