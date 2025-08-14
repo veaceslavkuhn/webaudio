@@ -1,4 +1,4 @@
-import { EffectsProcessor } from '../services/EffectsProcessor';
+import { EffectsProcessorService } from '../services/EffectsProcessor';
 
 // Mock Web Audio API
 const mockAudioContext = {
@@ -16,7 +16,7 @@ describe('Advanced Effects Processor', () => {
 	let mockAudioBuffer;
 
 	beforeEach(() => {
-		effectsProcessor = new EffectsProcessor(mockAudioContext);
+		effectsProcessor = new EffectsProcessorService(mockAudioContext);
 		
 		// Create test audio buffer
 		mockAudioBuffer = {

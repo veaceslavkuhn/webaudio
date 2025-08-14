@@ -3,6 +3,22 @@ import React from "react";
 import TrackPanel from "../components/TrackPanel";
 import { AudioProvider } from "../context/AudioContext";
 
+// Mock the audio services to prevent infinite loops
+jest.mock("../services/AudioEngine", () => ({
+	AudioEngineService: jest.fn().mockImplementation(() => ({
+		initializeAudioContext: jest.fn().mockResolvedValue(true),
+		destroy: jest.fn(),
+		onPlaybackFinished: null,
+		onRecordingFinished: null,
+		onError: null,
+		onStatusChange: null,
+	})),
+}));
+
+jest.mock("../services/EffectsProcessor", () => ({
+	EffectsProcessorService: jest.fn().mockImplementation(() => ({})),
+}));
+
 // Mock the useAudioHooks
 jest.mock("../hooks/useAudioHooks", () => ({
 	useWaveformRenderer: () => ({

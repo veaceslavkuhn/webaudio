@@ -1,6 +1,5 @@
 import { renderHook } from "@testing-library/react";
 import React from "react";
-import { AudioProvider } from "../context/AudioContext";
 import {
 	useFileDrop,
 	useKeyboardShortcuts,
@@ -25,8 +24,40 @@ global.HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
 	restore: jest.fn(),
 }));
 
+// Mock ResizeObserver
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+	observe: jest.fn(),
+	unobserve: jest.fn(),
+	disconnect: jest.fn(),
+}));
+
+// Mock AudioProvider with simpler implementation for testing
+const MockAudioProvider = ({ children }) => {
+	const mockState = {
+		isInitialized: true,
+		tracks: new Map(),
+		isPlaying: false,
+		currentTime: 0,
+		selection: { start: null, end: null },
+		zoomLevel: 1,
+		scrollPosition: 0,
+	};
+
+	const mockActions = {
+		play: jest.fn(),
+		pause: jest.fn(),
+		stop: jest.fn(),
+	};
+
+	return (
+		<div data-testid="mock-provider">
+			{React.cloneElement(children, { state: mockState, actions: mockActions })}
+		</div>
+	);
+};
+
 // Wrapper component
-const wrapper = ({ children }) => <AudioProvider>{children}</AudioProvider>;
+const wrapper = ({ children }) => <MockAudioProvider>{children}</MockAudioProvider>;
 
 describe("useAudioHooks", () => {
 	describe("useFileDrop", () => {

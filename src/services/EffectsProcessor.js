@@ -357,6 +357,11 @@ export class EffectsProcessorService {
 	}
 
 	copyBuffer(audioBuffer) {
+		if (!audioBuffer) {
+			console.warn("copyBuffer: audioBuffer is null or undefined");
+			return null;
+		}
+		
 		const newBuffer = this.audioContext.createBuffer(
 			audioBuffer.numberOfChannels,
 			audioBuffer.length,
@@ -688,6 +693,12 @@ export class EffectsProcessorService {
 	// Advanced Effects
 
 	pitchShift(audioBuffer, semitones = 0) {
+		// Handle null or undefined audioBuffer
+		if (!audioBuffer) {
+			console.warn("pitchShift: audioBuffer is null or undefined");
+			return null;
+		}
+		
 		// Simple pitch shifting using playback rate simulation
 		const pitchRatio = 2 ** (semitones / 12);
 		const newBuffer = this.copyBuffer(audioBuffer);

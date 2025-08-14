@@ -1,6 +1,23 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import React from "react";
 import AdvancedTimeline from "../components/AdvancedTimeline";
 import { AudioProvider } from "../context/AudioContext";
+
+// Mock the audio services to prevent infinite loops
+jest.mock("../services/AudioEngine", () => ({
+	AudioEngineService: jest.fn().mockImplementation(() => ({
+		initializeAudioContext: jest.fn().mockResolvedValue(true),
+		destroy: jest.fn(),
+		onPlaybackFinished: null,
+		onRecordingFinished: null,
+		onError: null,
+		onStatusChange: null,
+	})),
+}));
+
+jest.mock("../services/EffectsProcessor", () => ({
+	EffectsProcessorService: jest.fn().mockImplementation(() => ({})),
+}));
 
 // Mock the audio hooks
 jest.mock("../hooks/useAudioHooks", () => ({

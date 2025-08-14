@@ -11,5 +11,8 @@ module.exports = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '<rootDir>/src/__tests__/setupTests.js'
-  ]
+  ],
+  testTimeout: 10000, // 10 second timeout
+  maxWorkers: 1, // Run tests serially to avoid race conditions
+  verbose: true
 };

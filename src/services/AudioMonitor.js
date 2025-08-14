@@ -34,6 +34,7 @@ export class AudioMonitor {
 			});
 
 			// Create audio nodes
+			this.stream = stream;
 			this.microphone = this.audioContext.createMediaStreamSource(stream);
 			this.analyser = this.audioContext.createAnalyser();
 			
@@ -114,10 +115,11 @@ export class AudioMonitor {
 		}
 		
 		if (this.microphone) {
-			const tracks = this.microphone.mediaStream.getTracks();
+			const tracks = this.stream.getTracks();
 			tracks.forEach(track => track.stop());
 			this.microphone.disconnect();
 			this.microphone = null;
+			this.stream = null;
 		}
 		
 		if (this.analyser) {
@@ -158,6 +160,7 @@ export class AudioMonitor {
 				}
 			});
 
+			this.stream = stream;
 			this.microphone = this.audioContext.createMediaStreamSource(stream);
 			this.microphone.connect(this.analyser);
 			

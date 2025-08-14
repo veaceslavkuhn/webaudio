@@ -228,6 +228,10 @@ describe('Audio Monitor', () => {
 			navigator.mediaDevices.getUserMedia.mockResolvedValueOnce(mockStream);
 			
 			await audioMonitor.startMonitoring();
+			
+			// Ensure the microphone source is set up
+			expect(audioMonitor.microphone).toBeTruthy();
+			
 			audioMonitor.stopMonitoring();
 			
 			expect(mockTrack.stop).toHaveBeenCalled();

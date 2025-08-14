@@ -33,6 +33,10 @@ describe('MIDI Service', () => {
 	let onErrorMock;
 
 	beforeEach(() => {
+		// Reset all mocks including the requestMIDIAccess mock
+		jest.clearAllMocks();
+		global.navigator.requestMIDIAccess = jest.fn();
+		
 		midiService = new MIDIService();
 		onNoteOnMock = jest.fn();
 		onNoteOffMock = jest.fn();
@@ -44,8 +48,7 @@ describe('MIDI Service', () => {
 		midiService.onControlChange = onControlChangeMock;
 		midiService.onError = onErrorMock;
 		
-		// Reset mocks
-		jest.clearAllMocks();
+		// Clear mock data
 		mockMIDIAccess.inputs.clear();
 		mockMIDIAccess.outputs.clear();
 	});

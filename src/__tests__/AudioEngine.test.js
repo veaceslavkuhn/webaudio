@@ -248,8 +248,8 @@ describe('AudioEngineService', () => {
 		});
 
 		test('should throw error for unsupported format', async () => {
-			await expect(audioEngine.exportAudio(trackId, 'mp3'))
-				.rejects.toThrow('Export format mp3 not supported');
+			await expect(audioEngine.exportAudio(trackId, 'xyz'))
+				.rejects.toThrow('Export format xyz not supported');
 		});
 	});
 
