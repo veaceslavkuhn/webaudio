@@ -201,8 +201,13 @@ const MenuBar = ({ onMenuAction }) => {
 			label: "Generate",
 			items: [
 				{ label: "Tone...", action: () => handleGenerate("tone") },
+				{ label: "Chirp...", action: () => handleGenerate("chirp") },
+				{ label: "DTMF Tones...", action: () => handleGenerate("dtmf") },
 				{ label: "Noise...", action: () => handleGenerate("noise") },
 				{ label: "Silence...", action: () => handleGenerate("silence") },
+				{ label: "Pluck...", action: () => handleGenerate("pluck") },
+				{ label: "Rhythm Track...", action: () => handleGenerate("rhythm") },
+				{ label: "Risset Drum...", action: () => handleGenerate("drum") },
 			],
 		},
 		{
@@ -220,6 +225,23 @@ const MenuBar = ({ onMenuAction }) => {
 				},
 				{ label: "Change Speed...", action: () => handleEffect("changeSpeed") },
 				{ label: "Change Pitch...", action: () => handleEffect("changePitch") },
+				{
+					label: "Bass and Treble...",
+					action: () => handleEffect("bassAndTreble"),
+				},
+				{ label: "Graphic EQ...", action: () => handleEffect("graphicEQ") },
+				{ label: "Notch Filter...", action: () => handleEffect("notchFilter") },
+				{
+					label: "Click Removal...",
+					action: () => handleEffect("clickRemoval"),
+				},
+				{ label: "Clip Fix...", action: () => handleEffect("clipFix") },
+				{ label: "Noise Gate...", action: () => handleEffect("noiseGate") },
+				{ label: "Tremolo...", action: () => handleEffect("tremolo") },
+				{ label: "Wahwah...", action: () => handleEffect("wahwah") },
+				{ label: "Invert", action: () => handleEffect("invert") },
+				{ label: "Repeat...", action: () => handleEffect("repeat") },
+				{ label: "Reverse", action: () => handleEffect("reverse") },
 			],
 		},
 		{

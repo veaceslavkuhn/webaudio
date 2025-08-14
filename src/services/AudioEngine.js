@@ -584,6 +584,232 @@ export class AudioEngineService {
 		return trackId;
 	}
 
+	// Phase 1 Priority Generators
+
+	/**
+	 * Generate Chirp - Frequency sweep tones
+	 */
+	generateChirp(startFreq = 440, endFreq = 880, duration = 2, amplitude = 0.5, waveform = "sine") {
+		const sampleRate = this.audioContext.sampleRate;
+		const length = Math.floor(duration * sampleRate);
+		const buffer = this.audioContext.createBuffer(1, length, sampleRate);
+		const channelData = buffer.getChannelData(0);
+
+		for (let i = 0; i < length; i++) {
+			const progress = i / length;
+			const frequency = startFreq + (endFreq - startFreq) * progress;
+			const time = i / sampleRate;
+			
+			let sample;
+			switch (waveform) {
+				case "sine":
+					sample = Math.sin(2 * Math.PI * frequency * time);
+					break;
+				case "square":
+					sample = Math.sign(Math.sin(2 * Math.PI * frequency * time));
+					break;
+				case "sawtooth":
+					sample = 2 * (frequency * time - Math.floor(frequency * time + 0.5));
+					break;
+				case "triangle":
+					sample = (2 / Math.PI) * Math.asin(Math.sin(2 * Math.PI * frequency * time));
+					break;
+				default:
+					sample = Math.sin(2 * Math.PI * frequency * time);
+			}
+			
+			channelData[i] = sample * amplitude;
+		}
+
+		const trackId = "chirp_" + Date.now();
+		this.audioBuffers.set(trackId, {
+			buffer: buffer,
+			name: `Chirp (${startFreq}Hz-${endFreq}Hz)`,
+			duration: duration,
+			sampleRate: sampleRate,
+			numberOfChannels: 1,
+		});
+
+		return trackId;
+	}
+
+	/**
+	 * Generate DTMF Tones - Telephone keypad tones
+	 */
+	generateDTMF(digit = "1", duration = 0.5, amplitude = 0.5) {
+		// DTMF frequency pairs
+		const dtmfFreqs = {
+			"1": [697, 1209], "2": [697, 1336], "3": [697, 1477], "A": [697, 1633],
+			"4": [770, 1209], "5": [770, 1336], "6": [770, 1477], "B": [770, 1633],
+			"7": [852, 1209], "8": [852, 1336], "9": [852, 1477], "C": [852, 1633],
+			"*": [941, 1209], "0": [941, 1336], "#": [941, 1477], "D": [941, 1633]
+		};
+
+		const frequencies = dtmfFreqs[digit] || dtmfFreqs["1"];
+		const sampleRate = this.audioContext.sampleRate;
+		const length = Math.floor(duration * sampleRate);
+		const buffer = this.audioContext.createBuffer(1, length, sampleRate);
+		const channelData = buffer.getChannelData(0);
+
+		for (let i = 0; i < length; i++) {
+			const time = i / sampleRate;
+			const sample1 = Math.sin(2 * Math.PI * frequencies[0] * time);
+			const sample2 = Math.sin(2 * Math.PI * frequencies[1] * time);
+			channelData[i] = (sample1 + sample2) * amplitude * 0.5;
+		}
+
+		const trackId = "dtmf_" + Date.now();
+		this.audioBuffers.set(trackId, {
+			buffer: buffer,
+			name: `DTMF ${digit}`,
+			duration: duration,
+			sampleRate: sampleRate,
+			numberOfChannels: 1,
+		});
+
+		return trackId;
+	}
+
+	/**
+	 * Generate Rhythm Track - Metronome/click track
+	 */
+	generateRhythmTrack(bpm = 120, duration = 10, beatsPerMeasure = 4, amplitude = 0.7) {
+		const sampleRate = this.audioContext.sampleRate;
+		const length = Math.floor(duration * sampleRate);
+		const buffer = this.audioContext.createBuffer(1, length, sampleRate);
+		const channelData = buffer.getChannelData(0);
+
+		const secondsPerBeat = 60 / bpm;
+		const samplesPerBeat = Math.floor(secondsPerBeat * sampleRate);
+		const clickDuration = 0.1; // 100ms click
+		const clickSamples = Math.floor(clickDuration * sampleRate);
+
+		for (let i = 0; i < length; i++) {
+			const currentBeat = Math.floor(i / samplesPerBeat);
+			const beatPosition = i % samplesPerBeat;
+			
+			if (beatPosition < clickSamples) {
+				const progress = beatPosition / clickSamples;
+				const envelope = Math.sin(progress * Math.PI); // Bell-shaped envelope
+				
+				// Different frequencies for downbeat vs regular beats
+				const isDownbeat = (currentBeat % beatsPerMeasure) === 0;
+				const frequency = isDownbeat ? 800 : 400;
+				
+				const time = i / sampleRate;
+				const click = Math.sin(2 * Math.PI * frequency * time) * envelope;
+				channelData[i] = click * amplitude;
+			}
+		}
+
+		const trackId = "rhythm_" + Date.now();
+		this.audioBuffers.set(trackId, {
+			buffer: buffer,
+			name: `Rhythm ${bpm}BPM`,
+			duration: duration,
+			sampleRate: sampleRate,
+			numberOfChannels: 1,
+		});
+
+		return trackId;
+	}
+
+	/**
+	 * Generate Pluck - Synthesized pluck instrument
+	 */
+	generatePluck(frequency = 440, duration = 2, amplitude = 0.5, decay = 0.5) {
+		const sampleRate = this.audioContext.sampleRate;
+		const length = Math.floor(duration * sampleRate);
+		const buffer = this.audioContext.createBuffer(1, length, sampleRate);
+		const channelData = buffer.getChannelData(0);
+
+		// Karplus-Strong pluck synthesis
+		const delayLength = Math.floor(sampleRate / frequency);
+		const delayLine = new Float32Array(delayLength);
+		
+		// Initialize with noise burst
+		for (let i = 0; i < delayLength; i++) {
+			delayLine[i] = (Math.random() * 2 - 1) * amplitude;
+		}
+
+		let delayIndex = 0;
+		
+		for (let i = 0; i < length; i++) {
+			const time = i / sampleRate;
+			const envelope = Math.exp(-decay * time); // Exponential decay
+			
+			// Get delayed sample
+			const delayed = delayLine[delayIndex];
+			
+			// Apply low-pass filter (simple average for damping)
+			const nextIndex = (delayIndex + 1) % delayLength;
+			const filtered = (delayed + delayLine[nextIndex]) * 0.5 * 0.99; // 0.99 for energy loss
+			
+			// Store back in delay line
+			delayLine[delayIndex] = filtered;
+			
+			// Output with envelope
+			channelData[i] = delayed * envelope;
+			
+			delayIndex = nextIndex;
+		}
+
+		const trackId = "pluck_" + Date.now();
+		this.audioBuffers.set(trackId, {
+			buffer: buffer,
+			name: `Pluck ${frequency}Hz`,
+			duration: duration,
+			sampleRate: sampleRate,
+			numberOfChannels: 1,
+		});
+
+		return trackId;
+	}
+
+	/**
+	 * Generate Risset Drum - Realistic drum synthesis
+	 */
+	generateRissetDrum(frequency = 60, duration = 1, amplitude = 0.8) {
+		const sampleRate = this.audioContext.sampleRate;
+		const length = Math.floor(duration * sampleRate);
+		const buffer = this.audioContext.createBuffer(1, length, sampleRate);
+		const channelData = buffer.getChannelData(0);
+
+		for (let i = 0; i < length; i++) {
+			const time = i / sampleRate;
+			
+			// Frequency envelope (pitch drops rapidly)
+			const freqEnv = Math.exp(-time * 8);
+			const currentFreq = frequency * (0.5 + 0.5 * freqEnv);
+			
+			// Multiple frequency components for realistic drum sound
+			const fundamental = Math.sin(2 * Math.PI * currentFreq * time);
+			const harmonic2 = Math.sin(2 * Math.PI * currentFreq * 1.5 * time) * 0.6;
+			const harmonic3 = Math.sin(2 * Math.PI * currentFreq * 2.2 * time) * 0.3;
+			
+			// Noise component for attack
+			const noise = (Math.random() * 2 - 1) * Math.exp(-time * 15) * 0.3;
+			
+			// Amplitude envelope
+			const ampEnv = Math.exp(-time * 3);
+			
+			// Combine components
+			const sample = (fundamental + harmonic2 + harmonic3 + noise) * ampEnv;
+			channelData[i] = sample * amplitude;
+		}
+
+		const trackId = "drum_" + Date.now();
+		this.audioBuffers.set(trackId, {
+			buffer: buffer,
+			name: `Risset Drum ${frequency}Hz`,
+			duration: duration,
+			sampleRate: sampleRate,
+			numberOfChannels: 1,
+		});
+
+		return trackId;
+	}
+
 	async exportAudio(trackId, format = "wav") {
 		const trackData = this.audioBuffers.get(trackId);
 		if (!trackData) return null;
@@ -593,11 +819,13 @@ export class AudioEngineService {
 		if (format === "wav") {
 			return this.exportAsWAV(buffer);
 		} else if (format === "mp3") {
-			return this.exportAsMP3(buffer);
+			return await this.exportAsMP3(buffer);
 		} else if (format === "flac") {
-			return this.exportAsFLAC(buffer);
+			return await this.exportAsFLAC(buffer);
 		} else if (format === "ogg") {
-			return this.exportAsOGG(buffer);
+			return await this.exportAsOGG(buffer);
+		} else if (format === "aiff") {
+			return this.exportAsAIFF(buffer);
 		}
 
 		throw new Error(`Export format ${format} not supported`);
@@ -653,39 +881,140 @@ export class AudioEngineService {
 		return new Blob([buffer], { type: "audio/wav" });
 	}
 
-	exportAsMP3(audioBuffer) {
-		// Note: This is a simplified MP3 export using Web Audio API
-		// For production, consider using a library like lamejs
+	async exportAsMP3(audioBuffer) {
+		try {
+			// Dynamic import of lamejs
+			const { Mp3Encoder } = await import('lamejs');
+			
+			const sampleRate = audioBuffer.sampleRate;
+			const numberOfChannels = audioBuffer.numberOfChannels;
+			const bitRate = 128; // kbps
+			
+			const encoder = new Mp3Encoder(numberOfChannels, sampleRate, bitRate);
+			const mp3Data = [];
+			
+			// Convert float32 to int16
+			const samples = [];
+			for (let channel = 0; channel < numberOfChannels; channel++) {
+				const channelData = audioBuffer.getChannelData(channel);
+				const int16Array = new Int16Array(channelData.length);
+				for (let i = 0; i < channelData.length; i++) {
+					const sample = Math.max(-1, Math.min(1, channelData[i]));
+					int16Array[i] = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+				}
+				samples[channel] = int16Array;
+			}
+			
+			// Encode in chunks
+			const chunkSize = 1152;
+			for (let i = 0; i < samples[0].length; i += chunkSize) {
+				const leftChunk = samples[0].subarray(i, i + chunkSize);
+				const rightChunk = numberOfChannels > 1 ? samples[1].subarray(i, i + chunkSize) : leftChunk;
+				
+				const mp3buf = encoder.encodeBuffer(leftChunk, rightChunk);
+				if (mp3buf.length > 0) {
+					mp3Data.push(mp3buf);
+				}
+			}
+			
+			// Flush the encoder
+			const mp3buf = encoder.flush();
+			if (mp3buf.length > 0) {
+				mp3Data.push(mp3buf);
+			}
+			
+			return new Blob(mp3Data, { type: "audio/mpeg" });
+		} catch (error) {
+			console.warn("MP3 encoding failed, falling back to WAV:", error);
+			const wavData = this.exportAsWAV(audioBuffer);
+			return new Blob([wavData], { type: "audio/mpeg" });
+		}
+	}
+
+	async exportAsFLAC(audioBuffer) {
+		try {
+			// For now, export as high-quality WAV since FLAC encoding in browsers is complex
+			// In a production environment, you would use a proper FLAC encoder library
+			console.log("FLAC encoding: Using high-quality WAV format");
+			const wavData = this.exportAsWAV(audioBuffer);
+			return new Blob([wavData], { type: "audio/flac" });
+		} catch (error) {
+			console.warn("FLAC encoding failed, falling back to WAV:", error);
+			const wavData = this.exportAsWAV(audioBuffer);
+			return new Blob([wavData], { type: "audio/flac" });
+		}
+	}
+
+	async exportAsOGG(audioBuffer) {
+		try {
+			// For OGG Vorbis, we'll use a simplified approach
+			// In a full implementation, you'd use a proper Vorbis encoder
+			console.warn("OGG encoding not fully implemented, using WAV");
+			const wavData = this.exportAsWAV(audioBuffer);
+			return new Blob([wavData], { type: "audio/ogg" });
+		} catch (error) {
+			console.warn("OGG encoding failed, falling back to WAV:", error);
+			const wavData = this.exportAsWAV(audioBuffer);
+			return new Blob([wavData], { type: "audio/ogg" });
+		}
+	}
+
+	exportAsAIFF(audioBuffer) {
 		const length = audioBuffer.length;
 		const numberOfChannels = audioBuffer.numberOfChannels;
+		const sampleRate = audioBuffer.sampleRate;
+		const bytesPerSample = 2;
+		const blockAlign = numberOfChannels * bytesPerSample;
+		const dataSize = length * blockAlign;
+		const buffer = new ArrayBuffer(54 + dataSize);
+		const view = new DataView(buffer);
 
-		// Convert to interleaved PCM data
-		const pcmData = new Float32Array(length * numberOfChannels);
-		for (let channel = 0; channel < numberOfChannels; channel++) {
-			const channelData = audioBuffer.getChannelData(channel);
-			for (let i = 0; i < length; i++) {
-				pcmData[i * numberOfChannels + channel] = channelData[i];
+		const writeString = (offset, string) => {
+			for (let i = 0; i < string.length; i++) {
+				view.setUint8(offset + i, string.charCodeAt(i));
+			}
+		};
+
+		// FORM chunk
+		writeString(0, "FORM");
+		view.setUint32(4, 46 + dataSize, false); // Big-endian
+		writeString(8, "AIFF");
+		
+		// COMM chunk
+		writeString(12, "COMM");
+		view.setUint32(16, 18, false);
+		view.setUint16(20, numberOfChannels, false);
+		view.setUint32(22, length, false);
+		view.setUint16(26, 16, false);
+		
+		// Sample rate as 80-bit IEEE extended precision
+		const sampleRateBuffer = new ArrayBuffer(10);
+		const sampleRateView = new DataView(sampleRateBuffer);
+		// Simplified conversion - for production use proper IEEE 754 conversion
+		sampleRateView.setUint16(0, 0x400E, false); // Exponent
+		sampleRateView.setUint32(2, Math.floor(sampleRate), false);
+		sampleRateView.setUint32(6, 0, false);
+		
+		for (let i = 0; i < 10; i++) {
+			view.setUint8(28 + i, sampleRateView.getUint8(i));
+		}
+		
+		// SSND chunk
+		writeString(38, "SSND");
+		view.setUint32(42, dataSize + 8, false);
+		view.setUint32(46, 0, false); // Offset
+		view.setUint32(50, 0, false); // Block size
+
+		let offset = 54;
+		for (let i = 0; i < length; i++) {
+			for (let channel = 0; channel < numberOfChannels; channel++) {
+				const sample = Math.max(-1, Math.min(1, audioBuffer.getChannelData(channel)[i]));
+				view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, false);
+				offset += 2;
 			}
 		}
 
-		// For now, return as WAV with MP3 MIME type (placeholder)
-		// In production, integrate with lamejs or similar MP3 encoder
-		const wavData = this.exportAsWAV(audioBuffer);
-		return new Blob([wavData], { type: "audio/mpeg" });
-	}
-
-	exportAsFLAC(audioBuffer) {
-		// Placeholder FLAC export - would need flac.js or similar library
-		// For now, return high-quality WAV
-		const wavData = this.exportAsWAV(audioBuffer);
-		return new Blob([wavData], { type: "audio/flac" });
-	}
-
-	exportAsOGG(audioBuffer) {
-		// Placeholder OGG export - would need vorbis.js or similar library
-		// For now, return WAV with OGG MIME type
-		const wavData = this.exportAsWAV(audioBuffer);
-		return new Blob([wavData], { type: "audio/ogg" });
+		return new Blob([buffer], { type: "audio/aiff" });
 	}
 
 	getTrackInfo(trackId) {

@@ -19,7 +19,9 @@
     "lint:fix": "eslint . --ext js,jsx,ts,tsx --fix"
   },
   "dependencies": {
+    "lamejs": "^1.2.1",
     "lucide-react": "^0.263.1",
+    "opus-media-recorder": "^0.8.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

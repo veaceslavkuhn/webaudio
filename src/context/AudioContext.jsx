@@ -8,6 +8,9 @@ import React, {
 } from "react";
 import { AudioEngineService } from "../services/AudioEngine";
 import { EffectsProcessorService } from "../services/EffectsProcessor";
+import { EnvelopeManager } from "../services/EnvelopeManager";
+import { LabelTrackManager } from "../services/LabelTrackManager";
+import { RealTimeEffectsManager } from "../services/RealTimeEffectsManager";
 import { UndoRedoManager } from "../services/UndoRedoManager";
 
 // Initial state
@@ -19,6 +22,9 @@ const initialState = {
 	currentTime: 0,
 	totalDuration: 0,
 	tracks: new Map(),
+	labels: [],
+	realTimeEffects: [],
+	envelopes: [],
 	selection: { start: null, end: null },
 	playheadPosition: 0,
 	zoomLevel: 1.0,
@@ -55,6 +61,9 @@ const ActionTypes = {
 	ADD_TRACK: "ADD_TRACK",
 	REMOVE_TRACK: "REMOVE_TRACK",
 	UPDATE_TRACK: "UPDATE_TRACK",
+	UPDATE_LABELS: "UPDATE_LABELS",
+	UPDATE_REAL_TIME_EFFECTS: "UPDATE_REAL_TIME_EFFECTS",
+	UPDATE_ENVELOPES: "UPDATE_ENVELOPES",
 	SET_SELECTION: "SET_SELECTION",
 	CLEAR_SELECTION: "CLEAR_SELECTION",
 	SET_PLAYHEAD_POSITION: "SET_PLAYHEAD_POSITION",
@@ -153,6 +162,24 @@ function audioReducer(state, action) {
 				tracks: modifiedTracks,
 			};
 		}
+
+		case ActionTypes.UPDATE_LABELS:
+			return {
+				...state,
+				labels: action.payload,
+			};
+
+		case ActionTypes.UPDATE_REAL_TIME_EFFECTS:
+			return {
+				...state,
+				realTimeEffects: action.payload,
+			};
+
+		case ActionTypes.UPDATE_ENVELOPES:
+			return {
+				...state,
+				envelopes: action.payload,
+			};
 
 		case ActionTypes.SET_SELECTION:
 			return {
@@ -718,6 +745,179 @@ export const AudioProvider = ({ children }) => {
 			if (trackInfo) {
 				actions.addTrack(trackId, trackInfo);
 				actions.updateTotalDuration();
+			}
+		}, []),
+
+		// Phase 1 Priority Generators
+		generateChirp: useCallback(
+			(startFreq, endFreq, duration, amplitude, waveform) => {
+				if (!audioEngineRef.current) return;
+
+				const trackId = audioEngineRef.current.generateChirp(
+					startFreq,
+					endFreq,
+					duration,
+					amplitude,
+					waveform,
+				);
+				const trackInfo = audioEngineRef.current.getTrackInfo(trackId);
+
+				if (trackInfo) {
+					actions.addTrack(trackId, trackInfo);
+					actions.updateTotalDuration();
+				}
+			},
+			[],
+		),
+
+		generateDTMF: useCallback((digit, duration, amplitude) => {
+			if (!audioEngineRef.current) return;
+
+			const trackId = audioEngineRef.current.generateDTMF(
+				digit,
+				duration,
+				amplitude,
+			);
+			const trackInfo = audioEngineRef.current.getTrackInfo(trackId);
+
+			if (trackInfo) {
+				actions.addTrack(trackId, trackInfo);
+				actions.updateTotalDuration();
+			}
+		}, []),
+
+		generateRhythmTrack: useCallback(
+			(bpm, duration, beatsPerMeasure, amplitude) => {
+				if (!audioEngineRef.current) return;
+
+				const trackId = audioEngineRef.current.generateRhythmTrack(
+					bpm,
+					duration,
+					beatsPerMeasure,
+					amplitude,
+				);
+				const trackInfo = audioEngineRef.current.getTrackInfo(trackId);
+
+				if (trackInfo) {
+					actions.addTrack(trackId, trackInfo);
+					actions.updateTotalDuration();
+				}
+			},
+			[],
+		),
+
+		generatePluck: useCallback((frequency, duration, amplitude, decay) => {
+			if (!audioEngineRef.current) return;
+
+			const trackId = audioEngineRef.current.generatePluck(
+				frequency,
+				duration,
+				amplitude,
+				decay,
+			);
+			const trackInfo = audioEngineRef.current.getTrackInfo(trackId);
+
+			if (trackInfo) {
+				actions.addTrack(trackId, trackInfo);
+				actions.updateTotalDuration();
+			}
+		}, []),
+
+		generateRissetDrum: useCallback((frequency, duration, amplitude) => {
+			if (!audioEngineRef.current) return;
+
+			const trackId = audioEngineRef.current.generateRissetDrum(
+				frequency,
+				duration,
+				amplitude,
+			);
+			const trackInfo = audioEngineRef.current.getTrackInfo(trackId);
+
+			if (trackInfo) {
+				actions.addTrack(trackId, trackInfo);
+				actions.updateTotalDuration();
+			}
+		}, []),
+
+		// Generic generator method for UI
+		generate: useCallback((type, parameters) => {
+			if (!audioEngineRef.current) return;
+
+			let trackId;
+			switch (type) {
+				case "tone":
+					trackId = audioEngineRef.current.generateTone(
+						parameters.frequency,
+						parameters.duration,
+						parameters.amplitude,
+						parameters.waveform,
+					);
+					break;
+				case "noise":
+					trackId = audioEngineRef.current.generateNoise(
+						parameters.duration,
+						parameters.amplitude,
+						parameters.type,
+					);
+					break;
+				case "silence":
+					trackId = audioEngineRef.current.generateSilence(parameters.duration);
+					break;
+				case "chirp":
+					trackId = audioEngineRef.current.generateChirp(
+						parameters.startFreq,
+						parameters.endFreq,
+						parameters.duration,
+						parameters.amplitude,
+						parameters.waveform,
+					);
+					break;
+				case "dtmf":
+					trackId = audioEngineRef.current.generateDTMF(
+						parameters.digit,
+						parameters.duration,
+						parameters.amplitude,
+					);
+					break;
+				case "rhythm":
+					trackId = audioEngineRef.current.generateRhythmTrack(
+						parameters.bpm,
+						parameters.duration,
+						parameters.beatsPerMeasure,
+						parameters.amplitude,
+					);
+					break;
+				case "pluck":
+					trackId = audioEngineRef.current.generatePluck(
+						parameters.frequency,
+						parameters.duration,
+						parameters.amplitude,
+						parameters.decay,
+					);
+					break;
+				case "drum":
+					trackId = audioEngineRef.current.generateRissetDrum(
+						parameters.frequency,
+						parameters.duration,
+						parameters.amplitude,
+					);
+					break;
+				default:
+					dispatch({
+						type: ActionTypes.SET_ERROR,
+						payload: `Unknown generator: ${type}`,
+					});
+					return;
+			}
+
+			const trackInfo = audioEngineRef.current.getTrackInfo(trackId);
+			if (trackInfo) {
+				actions.addTrack(trackId, trackInfo);
+				actions.updateTotalDuration();
+				dispatch({
+					type: ActionTypes.SET_STATUS,
+					payload: `Generated ${type}`,
+				});
 			}
 		}, []),
 

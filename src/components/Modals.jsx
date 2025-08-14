@@ -1,5 +1,5 @@
 import { AlertTriangle, CheckCircle, Info, X } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 const Modal = ({
 	isOpen,
@@ -364,112 +364,375 @@ const ExportModal = ({ isOpen, onClose, onExport, tracks = [] }) => {
 
 // Generate Audio Modal
 const GenerateModal = ({ isOpen, onClose, onGenerate, type }) => {
-	const [frequency, setFrequency] = useState(440);
-	const [duration, setDuration] = useState(1.0);
-	const [amplitude, setAmplitude] = useState(0.5);
-	const [waveform, setWaveform] = useState("sine");
-	const [noiseType, setNoiseType] = useState("white");
+	const [parameters, setParameters] = useState({});
+
+	const config = useMemo(() => {
+		switch (type) {
+			case "tone":
+				return {
+					title: "Generate Tone",
+					params: [
+						{
+							name: "frequency",
+							label: "Frequency (Hz)",
+							type: "number",
+							min: 20,
+							max: 20000,
+							step: 1,
+							default: 440,
+						},
+						{
+							name: "duration",
+							label: "Duration (seconds)",
+							type: "number",
+							min: 0.1,
+							max: 60,
+							step: 0.1,
+							default: 1.0,
+						},
+						{
+							name: "amplitude",
+							label: "Amplitude",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.5,
+						},
+						{
+							name: "waveform",
+							label: "Waveform",
+							type: "select",
+							options: ["sine", "square", "sawtooth", "triangle"],
+							default: "sine",
+						},
+					],
+				};
+			case "noise":
+				return {
+					title: "Generate Noise",
+					params: [
+						{
+							name: "duration",
+							label: "Duration (seconds)",
+							type: "number",
+							min: 0.1,
+							max: 60,
+							step: 0.1,
+							default: 1.0,
+						},
+						{
+							name: "amplitude",
+							label: "Amplitude",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.1,
+						},
+						{
+							name: "type",
+							label: "Noise Type",
+							type: "select",
+							options: ["white", "pink"],
+							default: "white",
+						},
+					],
+				};
+			case "silence":
+				return {
+					title: "Generate Silence",
+					params: [
+						{
+							name: "duration",
+							label: "Duration (seconds)",
+							type: "number",
+							min: 0.1,
+							max: 60,
+							step: 0.1,
+							default: 1.0,
+						},
+					],
+				};
+			// Phase 1 Priority Generators
+			case "chirp":
+				return {
+					title: "Generate Chirp",
+					params: [
+						{
+							name: "startFreq",
+							label: "Start Frequency (Hz)",
+							type: "number",
+							min: 20,
+							max: 20000,
+							step: 1,
+							default: 440,
+						},
+						{
+							name: "endFreq",
+							label: "End Frequency (Hz)",
+							type: "number",
+							min: 20,
+							max: 20000,
+							step: 1,
+							default: 880,
+						},
+						{
+							name: "duration",
+							label: "Duration (seconds)",
+							type: "number",
+							min: 0.1,
+							max: 60,
+							step: 0.1,
+							default: 2.0,
+						},
+						{
+							name: "amplitude",
+							label: "Amplitude",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.5,
+						},
+						{
+							name: "waveform",
+							label: "Waveform",
+							type: "select",
+							options: ["sine", "square", "sawtooth", "triangle"],
+							default: "sine",
+						},
+					],
+				};
+			case "dtmf":
+				return {
+					title: "Generate DTMF Tone",
+					params: [
+						{
+							name: "digit",
+							label: "Digit/Key",
+							type: "select",
+							options: [
+								"0",
+								"1",
+								"2",
+								"3",
+								"4",
+								"5",
+								"6",
+								"7",
+								"8",
+								"9",
+								"*",
+								"#",
+								"A",
+								"B",
+								"C",
+								"D",
+							],
+							default: "1",
+						},
+						{
+							name: "duration",
+							label: "Duration (seconds)",
+							type: "number",
+							min: 0.1,
+							max: 10,
+							step: 0.1,
+							default: 0.5,
+						},
+						{
+							name: "amplitude",
+							label: "Amplitude",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.5,
+						},
+					],
+				};
+			case "rhythm":
+				return {
+					title: "Generate Rhythm Track",
+					params: [
+						{
+							name: "bpm",
+							label: "BPM (Beats Per Minute)",
+							type: "number",
+							min: 40,
+							max: 200,
+							step: 1,
+							default: 120,
+						},
+						{
+							name: "duration",
+							label: "Duration (seconds)",
+							type: "number",
+							min: 1,
+							max: 300,
+							step: 1,
+							default: 10,
+						},
+						{
+							name: "beatsPerMeasure",
+							label: "Beats Per Measure",
+							type: "number",
+							min: 2,
+							max: 8,
+							step: 1,
+							default: 4,
+						},
+						{
+							name: "amplitude",
+							label: "Amplitude",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.7,
+						},
+					],
+				};
+			case "pluck":
+				return {
+					title: "Generate Pluck",
+					params: [
+						{
+							name: "frequency",
+							label: "Frequency (Hz)",
+							type: "number",
+							min: 80,
+							max: 2000,
+							step: 1,
+							default: 440,
+						},
+						{
+							name: "duration",
+							label: "Duration (seconds)",
+							type: "number",
+							min: 0.5,
+							max: 10,
+							step: 0.1,
+							default: 2.0,
+						},
+						{
+							name: "amplitude",
+							label: "Amplitude",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.5,
+						},
+						{
+							name: "decay",
+							label: "Decay Rate",
+							type: "number",
+							min: 0.1,
+							max: 2,
+							step: 0.1,
+							default: 0.5,
+						},
+					],
+				};
+			case "drum":
+				return {
+					title: "Generate Risset Drum",
+					params: [
+						{
+							name: "frequency",
+							label: "Base Frequency (Hz)",
+							type: "number",
+							min: 40,
+							max: 200,
+							step: 1,
+							default: 60,
+						},
+						{
+							name: "duration",
+							label: "Duration (seconds)",
+							type: "number",
+							min: 0.1,
+							max: 5,
+							step: 0.1,
+							default: 1.0,
+						},
+						{
+							name: "amplitude",
+							label: "Amplitude",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.8,
+						},
+					],
+				};
+			default:
+				return { title: "Generate Audio", params: [] };
+		}
+	}, [type]);
+
+	React.useEffect(() => {
+		const initialParams = {};
+		config.params.forEach((param) => {
+			initialParams[param.name] = param.default;
+		});
+		setParameters(initialParams);
+	}, [config]);
 
 	const handleGenerate = () => {
-		const params = { frequency, duration, amplitude };
-
-		if (type === "tone") {
-			params.waveform = waveform;
-		} else if (type === "noise") {
-			params.type = noiseType;
-		}
-
-		onGenerate(type, params);
+		onGenerate(type, parameters);
 		onClose();
 	};
 
-	const getTitle = () => {
-		switch (type) {
-			case "tone":
-				return "Generate Tone";
-			case "noise":
-				return "Generate Noise";
-			case "silence":
-				return "Generate Silence";
-			default:
-				return "Generate Audio";
-		}
-	};
-
 	return (
-		<Modal isOpen={isOpen} onClose={onClose} title={getTitle()}>
+		<Modal isOpen={isOpen} onClose={onClose} title={config.title}>
 			<div className="generate-modal" data-testid="generate-modal">
-				<div className="form-group">
-					<label>Duration (seconds):</label>
-					<input
-						type="number"
-						value={duration}
-						onChange={(e) => setDuration(parseFloat(e.target.value))}
-						min="0.1"
-						max="60"
-						step="0.1"
-						data-testid="duration-input"
-					/>
-				</div>
-
-				{type !== "silence" && (
-					<div className="form-group">
-						<label>Amplitude:</label>
-						<input
-							type="range"
-							value={amplitude}
-							onChange={(e) => setAmplitude(parseFloat(e.target.value))}
-							min="0"
-							max="1"
-							step="0.01"
-							data-testid="amplitude-input"
-						/>
-						<span>{amplitude.toFixed(2)}</span>
-					</div>
-				)}
-
-				{type === "tone" && (
-					<>
-						<div className="form-group">
-							<label>Frequency (Hz):</label>
-							<input
-								type="number"
-								value={frequency}
-								onChange={(e) => setFrequency(parseInt(e.target.value))}
-								min="20"
-								max="20000"
-								data-testid="frequency-input"
-							/>
-						</div>
-						<div className="form-group">
-							<label>Waveform:</label>
+				{config.params.map((param) => (
+					<div key={param.name} className="form-group">
+						<label htmlFor={`generate-param-${param.name}`}>
+							{param.label}:
+						</label>
+						{param.type === "select" ? (
 							<select
-								value={waveform}
-								onChange={(e) => setWaveform(e.target.value)}
-								data-testid="waveform-select"
+								id={`generate-param-${param.name}`}
+								value={parameters[param.name] || param.default}
+								onChange={(e) => {
+									setParameters((prev) => ({
+										...prev,
+										[param.name]: e.target.value,
+									}));
+								}}
+								data-testid={`generate-param-${param.name}`}
 							>
-								<option value="sine">Sine</option>
-								<option value="square">Square</option>
-								<option value="sawtooth">Sawtooth</option>
-								<option value="triangle">Triangle</option>
+								{param.options.map((option) => (
+									<option key={option} value={option}>
+										{option}
+									</option>
+								))}
 							</select>
-						</div>
-					</>
-				)}
-
-				{type === "noise" && (
-					<div className="form-group">
-						<label>Noise Type:</label>
-						<select
-							value={noiseType}
-							onChange={(e) => setNoiseType(e.target.value)}
-							data-testid="noise-type-select"
-						>
-							<option value="white">White Noise</option>
-							<option value="pink">Pink Noise</option>
-						</select>
+						) : (
+							<input
+								id={`generate-param-${param.name}`}
+								type={param.type}
+								value={parameters[param.name] || param.default}
+								onChange={(e) => {
+									const value =
+										param.type === "number"
+											? parseFloat(e.target.value)
+											: e.target.value;
+									setParameters((prev) => ({ ...prev, [param.name]: value }));
+								}}
+								min={param.min}
+								max={param.max}
+								step={param.step}
+								data-testid={`generate-param-${param.name}`}
+							/>
+						)}
 					</div>
-				)}
+				))}
 
 				<div className="modal-actions" data-testid="generate-actions">
 					<button
@@ -650,6 +913,339 @@ const EffectModal = ({ isOpen, onClose, onApply, effectName }) => {
 						},
 					],
 				};
+			// Phase 1 Priority Effects
+			case "bassAndTreble":
+				return {
+					title: "Bass and Treble",
+					params: [
+						{
+							name: "bassGain",
+							label: "Bass Gain (dB)",
+							type: "number",
+							min: -20,
+							max: 20,
+							step: 0.5,
+							default: 0,
+						},
+						{
+							name: "trebleGain",
+							label: "Treble Gain (dB)",
+							type: "number",
+							min: -20,
+							max: 20,
+							step: 0.5,
+							default: 0,
+						},
+						{
+							name: "bassFreq",
+							label: "Bass Frequency (Hz)",
+							type: "number",
+							min: 100,
+							max: 500,
+							step: 10,
+							default: 250,
+						},
+						{
+							name: "trebleFreq",
+							label: "Treble Frequency (Hz)",
+							type: "number",
+							min: 2000,
+							max: 8000,
+							step: 100,
+							default: 4000,
+						},
+					],
+				};
+			case "graphicEQ":
+				return {
+					title: "Graphic EQ",
+					params: [
+						{
+							name: "band31",
+							label: "31.25 Hz (dB)",
+							type: "number",
+							min: -12,
+							max: 12,
+							step: 0.5,
+							default: 0,
+						},
+						{
+							name: "band62",
+							label: "62.5 Hz (dB)",
+							type: "number",
+							min: -12,
+							max: 12,
+							step: 0.5,
+							default: 0,
+						},
+						{
+							name: "band125",
+							label: "125 Hz (dB)",
+							type: "number",
+							min: -12,
+							max: 12,
+							step: 0.5,
+							default: 0,
+						},
+						{
+							name: "band250",
+							label: "250 Hz (dB)",
+							type: "number",
+							min: -12,
+							max: 12,
+							step: 0.5,
+							default: 0,
+						},
+						{
+							name: "band500",
+							label: "500 Hz (dB)",
+							type: "number",
+							min: -12,
+							max: 12,
+							step: 0.5,
+							default: 0,
+						},
+						{
+							name: "band1k",
+							label: "1 kHz (dB)",
+							type: "number",
+							min: -12,
+							max: 12,
+							step: 0.5,
+							default: 0,
+						},
+						{
+							name: "band2k",
+							label: "2 kHz (dB)",
+							type: "number",
+							min: -12,
+							max: 12,
+							step: 0.5,
+							default: 0,
+						},
+						{
+							name: "band4k",
+							label: "4 kHz (dB)",
+							type: "number",
+							min: -12,
+							max: 12,
+							step: 0.5,
+							default: 0,
+						},
+						{
+							name: "band8k",
+							label: "8 kHz (dB)",
+							type: "number",
+							min: -12,
+							max: 12,
+							step: 0.5,
+							default: 0,
+						},
+						{
+							name: "band16k",
+							label: "16 kHz (dB)",
+							type: "number",
+							min: -12,
+							max: 12,
+							step: 0.5,
+							default: 0,
+						},
+					],
+				};
+			case "notchFilter":
+				return {
+					title: "Notch Filter",
+					params: [
+						{
+							name: "frequency",
+							label: "Frequency (Hz)",
+							type: "number",
+							min: 20,
+							max: 20000,
+							step: 1,
+							default: 60,
+						},
+						{
+							name: "quality",
+							label: "Quality Factor",
+							type: "number",
+							min: 0.1,
+							max: 100,
+							step: 0.1,
+							default: 30,
+						},
+					],
+				};
+			case "clickRemoval":
+				return {
+					title: "Click Removal",
+					params: [
+						{
+							name: "threshold",
+							label: "Threshold (%)",
+							type: "number",
+							min: 10,
+							max: 500,
+							step: 10,
+							default: 200,
+						},
+						{
+							name: "width",
+							label: "Spike Width (samples)",
+							type: "number",
+							min: 1,
+							max: 20,
+							step: 1,
+							default: 5,
+						},
+					],
+				};
+			case "clipFix":
+				return {
+					title: "Clip Fix",
+					params: [
+						{
+							name: "threshold",
+							label: "Clipping Threshold",
+							type: "number",
+							min: 0.5,
+							max: 1,
+							step: 0.01,
+							default: 0.95,
+						},
+					],
+				};
+			case "noiseGate":
+				return {
+					title: "Noise Gate",
+					params: [
+						{
+							name: "threshold",
+							label: "Threshold (dB)",
+							type: "number",
+							min: -60,
+							max: 0,
+							step: 1,
+							default: -40,
+						},
+						{
+							name: "attack",
+							label: "Attack (s)",
+							type: "number",
+							min: 0.001,
+							max: 1,
+							step: 0.001,
+							default: 0.01,
+						},
+						{
+							name: "hold",
+							label: "Hold (s)",
+							type: "number",
+							min: 0.001,
+							max: 1,
+							step: 0.001,
+							default: 0.01,
+						},
+						{
+							name: "release",
+							label: "Release (s)",
+							type: "number",
+							min: 0.001,
+							max: 2,
+							step: 0.001,
+							default: 0.1,
+						},
+					],
+				};
+			case "tremolo":
+				return {
+					title: "Tremolo",
+					params: [
+						{
+							name: "rate",
+							label: "Rate (Hz)",
+							type: "number",
+							min: 0.1,
+							max: 20,
+							step: 0.1,
+							default: 5,
+						},
+						{
+							name: "depth",
+							label: "Depth",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.5,
+						},
+						{
+							name: "waveform",
+							label: "Waveform",
+							type: "select",
+							options: ["sine", "square", "triangle", "sawtooth"],
+							default: "sine",
+						},
+					],
+				};
+			case "wahwah":
+				return {
+					title: "Wahwah",
+					params: [
+						{
+							name: "rate",
+							label: "Rate (Hz)",
+							type: "number",
+							min: 0.1,
+							max: 10,
+							step: 0.1,
+							default: 0.5,
+						},
+						{
+							name: "depth",
+							label: "Depth",
+							type: "number",
+							min: 0,
+							max: 1,
+							step: 0.01,
+							default: 0.7,
+						},
+						{
+							name: "freqOffset",
+							label: "Frequency Offset (Hz)",
+							type: "number",
+							min: 100,
+							max: 2000,
+							step: 10,
+							default: 450,
+						},
+					],
+				};
+			case "invert":
+				return {
+					title: "Invert",
+					params: [], // No parameters needed
+				};
+			case "repeat":
+				return {
+					title: "Repeat",
+					params: [
+						{
+							name: "times",
+							label: "Number of Repeats",
+							type: "number",
+							min: 1,
+							max: 10,
+							step: 1,
+							default: 1,
+						},
+					],
+				};
+			case "reverse":
+				return {
+					title: "Reverse",
+					params: [], // No parameters needed
+				};
 			default:
 				return { title: effectName, params: [] };
 		}
@@ -675,22 +1271,43 @@ const EffectModal = ({ isOpen, onClose, onApply, effectName }) => {
 			<div className="effect-modal" data-testid="effect-modal">
 				{config.params.map((param) => (
 					<div key={param.name} className="form-group">
-						<label>{param.label}:</label>
-						<input
-							type={param.type}
-							value={parameters[param.name] || param.default}
-							onChange={(e) => {
-								const value =
-									param.type === "number"
-										? parseFloat(e.target.value)
-										: e.target.value;
-								setParameters((prev) => ({ ...prev, [param.name]: value }));
-							}}
-							min={param.min}
-							max={param.max}
-							step={param.step}
-							data-testid={`effect-param-${param.name}`}
-						/>
+						<label htmlFor={`effect-param-${param.name}`}>{param.label}:</label>
+						{param.type === "select" ? (
+							<select
+								id={`effect-param-${param.name}`}
+								value={parameters[param.name] || param.default}
+								onChange={(e) => {
+									setParameters((prev) => ({
+										...prev,
+										[param.name]: e.target.value,
+									}));
+								}}
+								data-testid={`effect-param-${param.name}`}
+							>
+								{param.options.map((option) => (
+									<option key={option} value={option}>
+										{option}
+									</option>
+								))}
+							</select>
+						) : (
+							<input
+								id={`effect-param-${param.name}`}
+								type={param.type}
+								value={parameters[param.name] || param.default}
+								onChange={(e) => {
+									const value =
+										param.type === "number"
+											? parseFloat(e.target.value)
+											: e.target.value;
+									setParameters((prev) => ({ ...prev, [param.name]: value }));
+								}}
+								min={param.min}
+								max={param.max}
+								step={param.step}
+								data-testid={`effect-param-${param.name}`}
+							/>
+						)}
 					</div>
 				))}
 
