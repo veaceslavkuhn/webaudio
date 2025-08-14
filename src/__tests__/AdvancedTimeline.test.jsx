@@ -1,9 +1,9 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import AdvancedTimeline from '../components/AdvancedTimeline';
-import { AudioProvider } from '../context/AudioContext';
+import { fireEvent, render, screen } from "@testing-library/react";
+import AdvancedTimeline from "../components/AdvancedTimeline";
+import { AudioProvider } from "../context/AudioContext";
 
 // Mock the audio hooks
-jest.mock('../hooks/useAudioHooks', () => ({
+jest.mock("../hooks/useAudioHooks", () => ({
 	useWaveformRenderer: () => ({
 		canvasRef: { current: null },
 		renderer: null,
@@ -16,7 +16,7 @@ const TimelineWrapper = ({ children }) => (
 	<AudioProvider>{children}</AudioProvider>
 );
 
-describe('Advanced Timeline Component', () => {
+describe("Advanced Timeline Component", () => {
 	beforeEach(() => {
 		// Mock canvas methods
 		HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
@@ -33,10 +33,10 @@ describe('Advanced Timeline Component', () => {
 			fill: jest.fn(),
 			scale: jest.fn(),
 			strokeRect: jest.fn(),
-			strokeStyle: '',
-			fillStyle: '',
+			strokeStyle: "",
+			fillStyle: "",
 			lineWidth: 1,
-			font: '10px Arial'
+			font: "10px Arial",
 		}));
 
 		HTMLCanvasElement.prototype.getBoundingClientRect = jest.fn(() => ({
@@ -47,12 +47,12 @@ describe('Advanced Timeline Component', () => {
 			width: 800,
 			height: 60,
 			x: 0,
-			y: 0
+			y: 0,
 		}));
 
-		Object.defineProperty(window, 'devicePixelRatio', {
+		Object.defineProperty(window, "devicePixelRatio", {
 			writable: true,
-			value: 1
+			value: 1,
 		});
 	});
 
@@ -60,53 +60,55 @@ describe('Advanced Timeline Component', () => {
 		jest.clearAllMocks();
 	});
 
-	describe('Rendering', () => {
-		test('should render advanced timeline component', () => {
+	describe("Rendering", () => {
+		test("should render advanced timeline component", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
-			expect(screen.getByText('Snap to Grid')).toBeInTheDocument();
-			expect(screen.getByText('Show Beats')).toBeInTheDocument();
-			expect(screen.getByText('Set Loop')).toBeInTheDocument();
-			expect(screen.getByText('Clear Loop')).toBeInTheDocument();
+			expect(screen.getByText("Snap to Grid")).toBeInTheDocument();
+			expect(screen.getByText("Show Beats")).toBeInTheDocument();
+			expect(screen.getByText("Set Loop")).toBeInTheDocument();
+			expect(screen.getByText("Clear Loop")).toBeInTheDocument();
 		});
 
-		test('should render timeline canvas', () => {
+		test("should render timeline canvas", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
-			const canvas = document.querySelector('.timeline-canvas');
+			const canvas = document.querySelector(".timeline-canvas");
 			expect(canvas).toBeInTheDocument();
-			expect(canvas.tagName).toBe('CANVAS');
+			expect(canvas.tagName).toBe("CANVAS");
 		});
 
-		test('should render control groups', () => {
+		test("should render control groups", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
-			const controls = document.querySelector('.timeline-controls');
+			const controls = document.querySelector(".timeline-controls");
 			expect(controls).toBeInTheDocument();
-			
-			const controlGroups = document.querySelectorAll('.timeline-control-group');
+
+			const controlGroups = document.querySelectorAll(
+				".timeline-control-group",
+			);
 			expect(controlGroups.length).toBeGreaterThan(0);
 		});
 	});
 
-	describe('Snap to Grid Controls', () => {
-		test('should toggle snap to grid', () => {
+	describe("Snap to Grid Controls", () => {
+		test("should toggle snap to grid", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
 			const snapCheckbox = screen.getByLabelText(/snap to grid/i);
@@ -119,11 +121,11 @@ describe('Advanced Timeline Component', () => {
 			expect(snapCheckbox).toBeChecked();
 		});
 
-		test('should show grid size control when not in beat mode', () => {
+		test("should show grid size control when not in beat mode", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
 			// First turn off beats mode
@@ -131,36 +133,36 @@ describe('Advanced Timeline Component', () => {
 			fireEvent.click(beatsCheckbox);
 
 			// Grid size control should appear
-			expect(screen.getByText('Grid Size:')).toBeInTheDocument();
-			
-			const gridSelect = screen.getByDisplayValue('1s');
+			expect(screen.getByText("Grid Size:")).toBeInTheDocument();
+
+			const gridSelect = screen.getByDisplayValue("1s");
 			expect(gridSelect).toBeInTheDocument();
 		});
 
-		test('should change grid size', () => {
+		test("should change grid size", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
 			// Turn off beats mode to show grid size
 			const beatsCheckbox = screen.getByLabelText(/show beats/i);
 			fireEvent.click(beatsCheckbox);
 
-			const gridSelect = screen.getByDisplayValue('1s');
-			fireEvent.change(gridSelect, { target: { value: '0.5' } });
-			
-			expect(gridSelect.value).toBe('0.5');
+			const gridSelect = screen.getByDisplayValue("1s");
+			fireEvent.change(gridSelect, { target: { value: "0.5" } });
+
+			expect(gridSelect.value).toBe("0.5");
 		});
 	});
 
-	describe('Beat Mode Controls', () => {
-		test('should toggle beat mode', () => {
+	describe("Beat Mode Controls", () => {
+		test("should toggle beat mode", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
 			const beatsCheckbox = screen.getByLabelText(/show beats/i);
@@ -170,234 +172,234 @@ describe('Advanced Timeline Component', () => {
 			expect(beatsCheckbox).not.toBeChecked();
 		});
 
-		test('should show BPM and time signature controls in beat mode', () => {
+		test("should show BPM and time signature controls in beat mode", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
-			expect(screen.getByText('BPM:')).toBeInTheDocument();
-			expect(screen.getByText('Time Sig:')).toBeInTheDocument();
-			
-			const bpmInput = screen.getByDisplayValue('120');
+			expect(screen.getByText("BPM:")).toBeInTheDocument();
+			expect(screen.getByText("Time Sig:")).toBeInTheDocument();
+
+			const bpmInput = screen.getByDisplayValue("120");
 			expect(bpmInput).toBeInTheDocument();
-			
-			const timeSigSelect = screen.getByDisplayValue('4/4');
+
+			const timeSigSelect = screen.getByDisplayValue("4/4");
 			expect(timeSigSelect).toBeInTheDocument();
 		});
 
-		test('should change BPM', () => {
+		test("should change BPM", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
-			const bpmInput = screen.getByDisplayValue('120');
-			fireEvent.change(bpmInput, { target: { value: '140' } });
-			
-			expect(bpmInput.value).toBe('140');
+			const bpmInput = screen.getByDisplayValue("120");
+			fireEvent.change(bpmInput, { target: { value: "140" } });
+
+			expect(bpmInput.value).toBe("140");
 		});
 
-		test('should change time signature', () => {
+		test("should change time signature", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
-			const timeSigSelect = screen.getByDisplayValue('4/4');
-			fireEvent.change(timeSigSelect, { target: { value: '3/4' } });
-			
-			expect(timeSigSelect.value).toBe('3/4');
+			const timeSigSelect = screen.getByDisplayValue("4/4");
+			fireEvent.change(timeSigSelect, { target: { value: "3/4" } });
+
+			expect(timeSigSelect.value).toBe("3/4");
 		});
 
-		test('should have time signature options', () => {
+		test("should have time signature options", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
 			// Check that options exist
-			expect(screen.getByText('4/4')).toBeInTheDocument();
-			expect(screen.getByText('3/4')).toBeInTheDocument();
-			expect(screen.getByText('2/4')).toBeInTheDocument();
-			expect(screen.getByText('6/8')).toBeInTheDocument();
+			expect(screen.getByText("4/4")).toBeInTheDocument();
+			expect(screen.getByText("3/4")).toBeInTheDocument();
+			expect(screen.getByText("2/4")).toBeInTheDocument();
+			expect(screen.getByText("6/8")).toBeInTheDocument();
 		});
 	});
 
-	describe('Loop Region Controls', () => {
-		test('should render loop control buttons', () => {
+	describe("Loop Region Controls", () => {
+		test("should render loop control buttons", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
-			const setLoopButton = screen.getByText('Set Loop');
-			const clearLoopButton = screen.getByText('Clear Loop');
-			
+			const setLoopButton = screen.getByText("Set Loop");
+			const clearLoopButton = screen.getByText("Clear Loop");
+
 			expect(setLoopButton).toBeInTheDocument();
 			expect(clearLoopButton).toBeInTheDocument();
 		});
 
-		test('should disable set loop button when no selection', () => {
+		test("should disable set loop button when no selection", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
-			const setLoopButton = screen.getByText('Set Loop');
+			const setLoopButton = screen.getByText("Set Loop");
 			expect(setLoopButton).toBeDisabled();
 		});
 
-		test('should disable clear loop button when no loop region', () => {
+		test("should disable clear loop button when no loop region", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
-			const clearLoopButton = screen.getByText('Clear Loop');
+			const clearLoopButton = screen.getByText("Clear Loop");
 			expect(clearLoopButton).toBeDisabled();
 		});
 
-		test('should click clear loop button', () => {
+		test("should click clear loop button", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
-			const clearLoopButton = screen.getByText('Clear Loop');
+			const clearLoopButton = screen.getByText("Clear Loop");
 			fireEvent.click(clearLoopButton);
-			
+
 			// Should not throw error even when disabled
 			expect(clearLoopButton).toBeDisabled();
 		});
 	});
 
-	describe('Canvas Interaction', () => {
-		test('should handle canvas click', () => {
+	describe("Canvas Interaction", () => {
+		test("should handle canvas click", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
-			const canvas = document.querySelector('.timeline-canvas');
-			
+			const canvas = document.querySelector(".timeline-canvas");
+
 			fireEvent.click(canvas, {
 				clientX: 100,
-				clientY: 30
+				clientY: 30,
 			});
 
 			// Should not throw error
 			expect(canvas).toBeInTheDocument();
 		});
 
-		test('should have correct canvas styles', () => {
+		test("should have correct canvas styles", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
-			const canvas = document.querySelector('.timeline-canvas');
-			
-			expect(canvas.style.width).toBe('100%');
-			expect(canvas.style.height).toBe('60px');
-			expect(canvas.style.cursor).toBe('crosshair');
-			expect(canvas.style.display).toBe('block');
+			const canvas = document.querySelector(".timeline-canvas");
+
+			expect(canvas.style.width).toBe("100%");
+			expect(canvas.style.height).toBe("60px");
+			expect(canvas.style.cursor).toBe("crosshair");
+			expect(canvas.style.display).toBe("block");
 		});
 	});
 
-	describe('Responsive Behavior', () => {
-		test('should handle window resize', () => {
+	describe("Responsive Behavior", () => {
+		test("should handle window resize", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
 			// Trigger resize event
-			fireEvent(window, new Event('resize'));
+			fireEvent(window, new Event("resize"));
 
 			// Should not throw error
-			const canvas = document.querySelector('.timeline-canvas');
+			const canvas = document.querySelector(".timeline-canvas");
 			expect(canvas).toBeInTheDocument();
 		});
 
-		test('should maintain aspect ratio', () => {
+		test("should maintain aspect ratio", () => {
 			render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
-			const canvas = document.querySelector('.timeline-canvas');
-			expect(canvas.style.height).toBe('60px');
+			const canvas = document.querySelector(".timeline-canvas");
+			expect(canvas.style.height).toBe("60px");
 		});
 	});
 
-	describe('Error Handling', () => {
-		test('should handle missing canvas context gracefully', () => {
+	describe("Error Handling", () => {
+		test("should handle missing canvas context gracefully", () => {
 			HTMLCanvasElement.prototype.getContext = jest.fn(() => null);
-			
+
 			expect(() => {
 				render(
 					<TimelineWrapper>
 						<AdvancedTimeline />
-					</TimelineWrapper>
+					</TimelineWrapper>,
 				);
 			}).not.toThrow();
 		});
 
-		test('should handle canvas measurement errors', () => {
+		test("should handle canvas measurement errors", () => {
 			HTMLCanvasElement.prototype.getBoundingClientRect = jest.fn(() => {
-				throw new Error('Measurement error');
+				throw new Error("Measurement error");
 			});
-			
+
 			expect(() => {
 				render(
 					<TimelineWrapper>
 						<AdvancedTimeline />
-					</TimelineWrapper>
+					</TimelineWrapper>,
 				);
 			}).not.toThrow();
 		});
 	});
 
-	describe('Integration', () => {
-		test('should render without crashing in audio context', () => {
+	describe("Integration", () => {
+		test("should render without crashing in audio context", () => {
 			expect(() => {
 				render(
 					<TimelineWrapper>
 						<AdvancedTimeline />
-					</TimelineWrapper>
+					</TimelineWrapper>,
 				);
 			}).not.toThrow();
 		});
 
-		test('should maintain state between re-renders', () => {
+		test("should maintain state between re-renders", () => {
 			const { rerender } = render(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
 			const snapCheckbox = screen.getByLabelText(/snap to grid/i);
 			fireEvent.click(snapCheckbox);
-			
+
 			expect(snapCheckbox).not.toBeChecked();
 
 			rerender(
 				<TimelineWrapper>
 					<AdvancedTimeline />
-				</TimelineWrapper>
+				</TimelineWrapper>,
 			);
 
 			// State should be maintained

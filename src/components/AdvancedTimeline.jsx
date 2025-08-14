@@ -1,16 +1,19 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useAudioState, useAudioActions } from "../context/AudioContext";
+import { useAudioActions, useAudioState } from "../context/AudioContext";
 
 const AdvancedTimeline = () => {
 	const canvasRef = useRef(null);
 	const state = useAudioState();
 	const actions = useAudioActions();
-	
+
 	// Advanced timeline state
 	const [snapToGrid, setSnapToGrid] = useState(true);
 	const [gridSize, setGridSize] = useState(1); // seconds
 	const [loopRegion, setLoopRegion] = useState({ start: null, end: null });
-	const [timeSignature, setTimeSignature] = useState({ numerator: 4, denominator: 4 });
+	const [timeSignature, setTimeSignature] = useState({
+		numerator: 4,
+		denominator: 4,
+	});
 	const [bpm, setBpm] = useState(120);
 	const [showBeats, setShowBeats] = useState(true);
 
@@ -26,29 +29,37 @@ const AdvancedTimeline = () => {
 		}
 	}, []);
 
-	const formatBeatTime = useCallback((seconds) => {
-		const { numerator } = timeSignature;
-		const beatDuration = 60 / bpm; // seconds per beat
-		const measureDuration = beatDuration * numerator; // seconds per measure
-		
-		const measures = Math.floor(seconds / measureDuration);
-		const remainingSeconds = seconds % measureDuration;
-		const beats = Math.floor(remainingSeconds / beatDuration);
-		const subBeats = Math.floor((remainingSeconds % beatDuration) / (beatDuration / 4));
-		
-		return `${measures + 1}.${beats + 1}.${subBeats + 1}`;
-	}, [bpm, timeSignature]);
+	const formatBeatTime = useCallback(
+		(seconds) => {
+			const { numerator } = timeSignature;
+			const beatDuration = 60 / bpm; // seconds per beat
+			const measureDuration = beatDuration * numerator; // seconds per measure
 
-	const snapToGridValue = useCallback((time) => {
-		if (!snapToGrid) return time;
-		
-		if (showBeats) {
-			const beatDuration = 60 / bpm;
-			return Math.round(time / beatDuration) * beatDuration;
-		} else {
-			return Math.round(time / gridSize) * gridSize;
-		}
-	}, [snapToGrid, gridSize, bpm, showBeats]);
+			const measures = Math.floor(seconds / measureDuration);
+			const remainingSeconds = seconds % measureDuration;
+			const beats = Math.floor(remainingSeconds / beatDuration);
+			const subBeats = Math.floor(
+				(remainingSeconds % beatDuration) / (beatDuration / 4),
+			);
+
+			return `${measures + 1}.${beats + 1}.${subBeats + 1}`;
+		},
+		[bpm, timeSignature],
+	);
+
+	const snapToGridValue = useCallback(
+		(time) => {
+			if (!snapToGrid) return time;
+
+			if (showBeats) {
+				const beatDuration = 60 / bpm;
+				return Math.round(time / beatDuration) * beatDuration;
+			} else {
+				return Math.round(time / gridSize) * gridSize;
+			}
+		},
+		[snapToGrid, gridSize, bpm, showBeats],
+	);
 
 	const resizeCanvas = useCallback(() => {
 		const canvas = canvasRef.current;
@@ -94,16 +105,16 @@ const AdvancedTimeline = () => {
 		if (loopRegion.start !== null && loopRegion.end !== null) {
 			const loopStartX = (loopRegion.start - startTime) * pixelsPerSecond;
 			const loopEndX = (loopRegion.end - startTime) * pixelsPerSecond;
-			
+
 			if (loopEndX > 0 && loopStartX < width) {
 				ctx.fillStyle = "rgba(0, 255, 136, 0.1)";
 				ctx.fillRect(
 					Math.max(0, loopStartX),
 					0,
 					Math.min(width, loopEndX) - Math.max(0, loopStartX),
-					height
+					height,
 				);
-				
+
 				// Loop region borders
 				ctx.strokeStyle = "#00ff88";
 				ctx.lineWidth = 2;
@@ -137,22 +148,24 @@ const AdvancedTimeline = () => {
 		}
 
 		const startMark = Math.floor(startTime / interval) * interval;
-		
+
 		ctx.strokeStyle = "#666";
 		ctx.fillStyle = "#ccc";
 		ctx.lineWidth = 1;
 
 		for (let time = startMark; time <= endTime; time += interval) {
 			const x = (time - startTime) * pixelsPerSecond;
-			
+
 			if (x >= 0 && x <= width) {
 				// Draw tick mark
-				const isMainTick = showBeats 
-					? (Math.round(time / (60 / bpm * timeSignature.numerator)) * (60 / bpm * timeSignature.numerator)) === time
-					: (time % (interval * 5)) === 0;
-				
+				const isMainTick = showBeats
+					? Math.round(time / ((60 / bpm) * timeSignature.numerator)) *
+							((60 / bpm) * timeSignature.numerator) ===
+						time
+					: time % (interval * 5) === 0;
+
 				const tickHeight = isMainTick ? height * 0.4 : height * 0.2;
-				
+
 				ctx.beginPath();
 				ctx.moveTo(x, height);
 				ctx.lineTo(x, height - tickHeight);
@@ -171,13 +184,13 @@ const AdvancedTimeline = () => {
 		if (snapToGrid) {
 			ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
 			ctx.lineWidth = 1;
-			
-			const gridInterval = showBeats ? (60 / bpm) : gridSize;
+
+			const gridInterval = showBeats ? 60 / bpm : gridSize;
 			const startGrid = Math.floor(startTime / gridInterval) * gridInterval;
-			
+
 			for (let time = startGrid; time <= endTime; time += gridInterval) {
 				const x = (time - startTime) * pixelsPerSecond;
-				
+
 				if (x >= 0 && x <= width) {
 					ctx.beginPath();
 					ctx.moveTo(x, 0);
@@ -204,29 +217,44 @@ const AdvancedTimeline = () => {
 		ctx.strokeStyle = "#444";
 		ctx.lineWidth = 1;
 		ctx.strokeRect(0, 0, width, height);
+	}, [
+		state,
+		loopRegion,
+		snapToGrid,
+		gridSize,
+		timeSignature,
+		bpm,
+		showBeats,
+		formatTime,
+		formatBeatTime,
+	]);
 
-	}, [state, loopRegion, snapToGrid, gridSize, timeSignature, bpm, showBeats, formatTime, formatBeatTime]);
+	const handleCanvasClick = useCallback(
+		(e) => {
+			const canvas = canvasRef.current;
+			if (!canvas) return;
 
-	const handleCanvasClick = useCallback((e) => {
-		const canvas = canvasRef.current;
-		if (!canvas) return;
+			const rect = canvas.getBoundingClientRect();
+			const x = e.clientX - rect.left;
+			const pixelsPerSecond = 100 * state.zoomLevel;
+			const startTime = state.scrollPosition / pixelsPerSecond;
+			const clickTime = startTime + x / pixelsPerSecond;
 
-		const rect = canvas.getBoundingClientRect();
-		const x = e.clientX - rect.left;
-		const pixelsPerSecond = 100 * state.zoomLevel;
-		const startTime = state.scrollPosition / pixelsPerSecond;
-		const clickTime = startTime + x / pixelsPerSecond;
-		
-		const snappedTime = snapToGridValue(clickTime);
-		actions.setPlayheadPosition(snappedTime);
-	}, [state.zoomLevel, state.scrollPosition, snapToGridValue, actions]);
+			const snappedTime = snapToGridValue(clickTime);
+			actions.setPlayheadPosition(snappedTime);
+		},
+		[state.zoomLevel, state.scrollPosition, snapToGridValue, actions],
+	);
 
-	const handleLoopRegionSet = useCallback((startTime, endTime) => {
-		setLoopRegion({
-			start: snapToGridValue(startTime),
-			end: snapToGridValue(endTime)
-		});
-	}, [snapToGridValue]);
+	const handleLoopRegionSet = useCallback(
+		(startTime, endTime) => {
+			setLoopRegion({
+				start: snapToGridValue(startTime),
+				end: snapToGridValue(endTime),
+			});
+		},
+		[snapToGridValue],
+	);
 
 	const clearLoopRegion = useCallback(() => {
 		setLoopRegion({ start: null, end: null });
@@ -258,7 +286,7 @@ const AdvancedTimeline = () => {
 						/>
 						Snap to Grid
 					</label>
-					
+
 					<label>
 						<input
 							type="checkbox"
@@ -273,8 +301,8 @@ const AdvancedTimeline = () => {
 					<div className="timeline-control-group">
 						<label>
 							Grid Size:
-							<select 
-								value={gridSize} 
+							<select
+								value={gridSize}
 								onChange={(e) => setGridSize(parseFloat(e.target.value))}
 							>
 								<option value={0.1}>0.1s</option>
@@ -296,16 +324,16 @@ const AdvancedTimeline = () => {
 								onChange={(e) => setBpm(parseInt(e.target.value))}
 								min="60"
 								max="200"
-								style={{ width: '60px' }}
+								style={{ width: "60px" }}
 							/>
 						</label>
-						
+
 						<label>
 							Time Sig:
 							<select
 								value={`${timeSignature.numerator}/${timeSignature.denominator}`}
 								onChange={(e) => {
-									const [num, den] = e.target.value.split('/').map(Number);
+									const [num, den] = e.target.value.split("/").map(Number);
 									setTimeSignature({ numerator: num, denominator: den });
 								}}
 							>
@@ -331,7 +359,7 @@ const AdvancedTimeline = () => {
 					>
 						Set Loop
 					</button>
-					
+
 					<button
 						type="button"
 						className="button small"
@@ -351,7 +379,7 @@ const AdvancedTimeline = () => {
 					width: "100%",
 					height: "60px",
 					cursor: "crosshair",
-					display: "block"
+					display: "block",
 				}}
 			/>
 		</div>

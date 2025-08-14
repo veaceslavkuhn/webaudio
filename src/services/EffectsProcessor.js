@@ -689,22 +689,23 @@ export class EffectsProcessorService {
 
 	pitchShift(audioBuffer, semitones = 0) {
 		// Simple pitch shifting using playback rate simulation
-		const pitchRatio = Math.pow(2, semitones / 12);
+		const pitchRatio = 2 ** (semitones / 12);
 		const newBuffer = this.copyBuffer(audioBuffer);
-		
+
 		for (let channel = 0; channel < newBuffer.numberOfChannels; channel++) {
 			const channelData = newBuffer.getChannelData(channel);
 			const originalData = audioBuffer.getChannelData(channel);
-			
+
 			for (let i = 0; i < channelData.length; i++) {
 				const sourceIndex = i * pitchRatio;
 				const index = Math.floor(sourceIndex);
 				const fraction = sourceIndex - index;
-				
+
 				if (index < originalData.length - 1) {
 					// Linear interpolation
-					channelData[i] = originalData[index] * (1 - fraction) + 
-									originalData[index + 1] * fraction;
+					channelData[i] =
+						originalData[index] * (1 - fraction) +
+						originalData[index + 1] * fraction;
 				} else if (index < originalData.length) {
 					channelData[i] = originalData[index];
 				} else {
@@ -712,7 +713,7 @@ export class EffectsProcessorService {
 				}
 			}
 		}
-		
+
 		return newBuffer;
 	}
 
@@ -722,21 +723,22 @@ export class EffectsProcessorService {
 		const newBuffer = this.audioContext.createBuffer(
 			audioBuffer.numberOfChannels,
 			newLength,
-			audioBuffer.sampleRate
+			audioBuffer.sampleRate,
 		);
-		
+
 		for (let channel = 0; channel < newBuffer.numberOfChannels; channel++) {
 			const channelData = newBuffer.getChannelData(channel);
 			const originalData = audioBuffer.getChannelData(channel);
-			
+
 			for (let i = 0; i < newLength; i++) {
 				const sourceIndex = i / stretchFactor;
 				const index = Math.floor(sourceIndex);
 				const fraction = sourceIndex - index;
-				
+
 				if (index < originalData.length - 1) {
-					channelData[i] = originalData[index] * (1 - fraction) + 
-									originalData[index + 1] * fraction;
+					channelData[i] =
+						originalData[index] * (1 - fraction) +
+						originalData[index + 1] * fraction;
 				} else if (index < originalData.length) {
 					channelData[i] = originalData[index];
 				} else {
@@ -744,7 +746,7 @@ export class EffectsProcessorService {
 				}
 			}
 		}
-		
+
 		return newBuffer;
 	}
 
@@ -752,58 +754,58 @@ export class EffectsProcessorService {
 		const newBuffer = this.copyBuffer(audioBuffer);
 		const sampleRate = audioBuffer.sampleRate;
 		const delaySamples = Math.floor(depth * sampleRate);
-		
+
 		for (let channel = 0; channel < newBuffer.numberOfChannels; channel++) {
 			const channelData = newBuffer.getChannelData(channel);
 			const originalData = audioBuffer.getChannelData(channel);
-			
+
 			for (let i = 0; i < channelData.length; i++) {
 				const time = i / sampleRate;
 				const lfo = Math.sin(2 * Math.PI * rate * time);
 				const delay = Math.floor(delaySamples * (1 + lfo));
 				const delayedIndex = i - delay;
-				
+
 				let delayedSample = 0;
 				if (delayedIndex >= 0 && delayedIndex < originalData.length) {
 					delayedSample = originalData[delayedIndex];
 				}
-				
+
 				channelData[i] = originalData[i] * (1 - mix) + delayedSample * mix;
 			}
 		}
-		
+
 		return newBuffer;
 	}
 
 	phaser(audioBuffer, rate = 0.5, depth = 1, feedback = 0.5, mix = 0.5) {
 		const newBuffer = this.copyBuffer(audioBuffer);
 		const sampleRate = audioBuffer.sampleRate;
-		
+
 		// All-pass filter coefficients
 		const delay = [0, 0, 0, 0];
-		
+
 		for (let channel = 0; channel < newBuffer.numberOfChannels; channel++) {
 			const channelData = newBuffer.getChannelData(channel);
 			const originalData = audioBuffer.getChannelData(channel);
-			
+
 			for (let i = 0; i < channelData.length; i++) {
 				const time = i / sampleRate;
 				const lfo = Math.sin(2 * Math.PI * rate * time);
-				const freq = 200 + depth * 1000 * (lfo + 1) / 2;
-				const omega = 2 * Math.PI * freq / sampleRate;
+				const freq = 200 + (depth * 1000 * (lfo + 1)) / 2;
+				const omega = (2 * Math.PI * freq) / sampleRate;
 				const alpha = Math.sin(omega) / (2 * Math.SQRT1_2);
-				
+
 				// Simple all-pass filter simulation
 				const processed = originalData[i] + delay[0] * feedback;
 				delay[0] = delay[1];
 				delay[1] = delay[2];
 				delay[2] = delay[3];
 				delay[3] = processed * alpha;
-				
+
 				channelData[i] = originalData[i] * (1 - mix) + processed * mix;
 			}
 		}
-		
+
 		return newBuffer;
 	}
 
@@ -813,27 +815,28 @@ export class EffectsProcessorService {
 		const maxDelay = Math.floor(depth * sampleRate);
 		const delayBuffer = new Array(maxDelay).fill(0);
 		let writeIndex = 0;
-		
+
 		for (let channel = 0; channel < newBuffer.numberOfChannels; channel++) {
 			const channelData = newBuffer.getChannelData(channel);
 			const originalData = audioBuffer.getChannelData(channel);
-			
+
 			for (let i = 0; i < channelData.length; i++) {
 				const time = i / sampleRate;
 				const lfo = Math.sin(2 * Math.PI * rate * time);
 				const delayTime = (maxDelay / 2) * (1 + lfo);
-				const readIndex = (writeIndex - Math.floor(delayTime) + maxDelay) % maxDelay;
-				
+				const readIndex =
+					(writeIndex - Math.floor(delayTime) + maxDelay) % maxDelay;
+
 				const delayedSample = delayBuffer[readIndex];
 				const output = originalData[i] + delayedSample * feedback;
-				
+
 				delayBuffer[writeIndex] = output;
 				writeIndex = (writeIndex + 1) % maxDelay;
-				
+
 				channelData[i] = originalData[i] * (1 - mix) + delayedSample * mix;
 			}
 		}
-		
+
 		return newBuffer;
 	}
 
@@ -841,16 +844,17 @@ export class EffectsProcessorService {
 		const newBuffer = this.copyBuffer(audioBuffer);
 		const curve = new Float32Array(44100);
 		const deg = Math.PI / 180;
-		
+
 		// Create distortion curve
 		for (let i = 0; i < 44100; i++) {
 			const x = (i * 2) / 44100 - 1;
-			curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
+			curve[i] =
+				((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
 		}
-		
+
 		for (let channel = 0; channel < newBuffer.numberOfChannels; channel++) {
 			const channelData = newBuffer.getChannelData(channel);
-			
+
 			for (let i = 0; i < channelData.length; i++) {
 				const sample = channelData[i];
 				const index = Math.floor((sample + 1) * 22050);
@@ -858,28 +862,28 @@ export class EffectsProcessorService {
 				channelData[i] = curve[clampedIndex];
 			}
 		}
-		
+
 		return newBuffer;
 	}
 
-	autoTune(audioBuffer, scale = 'major') {
+	autoTune(audioBuffer, scale = "major") {
 		// Simplified auto-tune - detects pitch and corrects to nearest note
 		const newBuffer = this.copyBuffer(audioBuffer);
-		
+
 		// Define scale intervals (semitones from root)
 		const scales = {
 			major: [0, 2, 4, 5, 7, 9, 11],
 			minor: [0, 2, 3, 5, 7, 8, 10],
-			chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+			chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
 		};
-		
+
 		const scaleNotes = scales[scale] || scales.major;
-		
+
 		// This is a simplified implementation
 		// Real auto-tune would require pitch detection and PSOLA
 		for (let channel = 0; channel < newBuffer.numberOfChannels; channel++) {
 			const channelData = newBuffer.getChannelData(channel);
-			
+
 			// Apply subtle pitch correction simulation using scale notes
 			for (let i = 0; i < channelData.length; i++) {
 				// Simplified: apply slight modulation based on scale
@@ -888,7 +892,7 @@ export class EffectsProcessorService {
 				channelData[i] = channelData[i] * (1 + correction);
 			}
 		}
-		
+
 		return newBuffer;
 	}
 }
